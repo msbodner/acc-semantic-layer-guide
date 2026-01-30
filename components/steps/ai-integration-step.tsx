@@ -22,7 +22,6 @@ export function AIIntegrationStep({ onBack, onNext }: AIIntegrationStepProps) {
         Connect your semantic layer to AI services for natural language capabilities.
       </p>
 
-      {/* Platform Comparison */}
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
         {Object.entries(AI_PLATFORMS).map(([key, platform]) => (
           <Card key={key} className="flex flex-col">
@@ -74,32 +73,19 @@ export function AIIntegrationStep({ onBack, onNext }: AIIntegrationStepProps) {
         ))}
       </div>
 
-      {/* Recommendation */}
       <Card className="mt-8 border-l-4 border-l-emerald-500 bg-emerald-50/50">
         <CardHeader>
-          <CardTitle className="text-emerald-700">Recommendation for Your Use Case</CardTitle>
+          <CardTitle className="text-emerald-700">Recommendation</CardTitle>
         </CardHeader>
         <CardContent>
           <h4 className="font-semibold">Azure OpenAI + Fabric Copilot</h4>
           <p className="mt-2 text-muted-foreground">
-            Based on your goals (NL queries, Power BI, APIs), we recommend:
+            Based on your goals, we recommend using both Fabric Copilot for built-in natural language
+            to DAX in Power BI, and Azure OpenAI for custom NL query APIs.
           </p>
-          <ol className="mt-3 list-inside list-decimal space-y-1 text-sm text-foreground">
-            <li>
-              <strong>Fabric Copilot</strong> - For built-in natural language to DAX in Power BI
-            </li>
-            <li>
-              <strong>Azure OpenAI</strong> - For custom NL query API and advanced scenarios
-            </li>
-            <li>
-              <strong>Azure AI Foundry</strong> - Optional, if you need custom model training on ACC
-              domain
-            </li>
-          </ol>
         </CardContent>
       </Card>
 
-      {/* Azure OpenAI Setup Guide */}
       <div className="mt-8">
         <h3 className="text-xl font-semibold">Azure OpenAI Setup</h3>
         <div className="mt-4 space-y-6">

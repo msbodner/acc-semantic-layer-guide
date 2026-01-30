@@ -29,8 +29,8 @@ const bestPractices = [
     color: "border-t-blue-600",
     items: [
       "Schedule incremental refresh for large tables",
-      "Use change data capture (CDC) when available from ACC APIs",
-      "Set appropriate refresh frequency (hourly for active projects)",
+      "Use change data capture (CDC) when available",
+      "Set appropriate refresh frequency",
     ],
   },
   {
@@ -40,7 +40,6 @@ const bestPractices = [
       "Implement row-level security based on project membership",
       "Use managed identity for service connections",
       "Store API keys in Azure Key Vault",
-      "Audit query access through Azure Monitor",
     ],
   },
   {
@@ -49,7 +48,6 @@ const bestPractices = [
     items: [
       "Use Direct Lake mode for large datasets",
       "Create aggregation tables for common queries",
-      "Optimize DAX measures for calculation groups",
       "Monitor query performance in Fabric metrics",
     ],
   },
@@ -57,55 +55,38 @@ const bestPractices = [
     title: "Natural Language Quality",
     color: "border-t-emerald-500",
     items: [
-      "Add detailed descriptions to all measures and columns",
+      "Add detailed descriptions to all measures",
       "Include synonyms for construction terminology",
-      "Test with real user questions and iterate on prompts",
-      "Implement feedback loop for query improvements",
+      "Test with real user questions and iterate",
     ],
   },
 ]
 
-const architectureDiagram = `┌─────────────────────────────────────────────────────────────────┐
-│                    ACC SEMANTIC LAYER ARCHITECTURE               │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌──────────────┐     ┌──────────────────────────────────────┐  │
-│  │   Autodesk   │────▶│        Microsoft Fabric              │  │
-│  │ Construction │     │  ┌─────────────────────────────────┐ │  │
-│  │    Cloud     │     │  │         Lakehouse               │ │  │
-│  └──────────────┘     │  │  ┌─────────┐  ┌─────────────┐  │ │  │
-│                       │  │  │ Raw     │─▶│  Curated    │  │ │  │
-│                       │  │  │ Tables  │  │  Tables     │  │ │  │
-│                       │  │  └─────────┘  └──────┬──────┘  │ │  │
-│                       │  └──────────────────────┼─────────┘ │  │
-│                       │                         ▼           │  │
-│                       │  ┌──────────────────────────────┐   │  │
-│                       │  │     Semantic Model           │   │  │
-│                       │  │  ┌────────┐ ┌──────────┐    │   │  │
-│                       │  │  │ Dims   │ │ Facts    │    │   │  │
-│                       │  │  └────────┘ └──────────┘    │   │  │
-│                       │  │  ┌────────────────────┐     │   │  │
-│                       │  │  │     Measures       │     │   │  │
-│                       │  │  └────────────────────┘     │   │  │
-│                       │  └──────────────┬───────────────┘   │  │
-│                       └─────────────────┼───────────────────┘  │
-│                                         ▼                      │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                   Azure OpenAI                            │  │
-│  │  ┌─────────────────────┐  ┌──────────────────────────┐   │  │
-│  │  │  NL to DAX Service  │  │  Answer Generation       │   │  │
-│  │  └─────────────────────┘  └──────────────────────────┘   │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                              ▼                                  │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                   Consumption Layer                       │  │
-│  │  ┌──────────┐  ┌──────────────┐  ┌──────────────────┐   │  │
-│  │  │ Power BI │  │ NL Query API │  │ Custom Apps      │   │  │
-│  │  │ Reports  │  │              │  │                  │   │  │
-│  │  └──────────┘  └──────────────┘  └──────────────────┘   │  │
-│  └──────────────────────────────────────────────────────────┘  │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘`
+const architectureDiagram = `ACC SEMANTIC LAYER ARCHITECTURE
+
+[Autodesk Construction Cloud]
+        |
+        v
+[Microsoft Fabric Lakehouse]
+  - Raw Tables
+  - Curated Tables
+        |
+        v
+[Semantic Model]
+  - Dimensions
+  - Facts
+  - Measures
+        |
+        v
+[Azure OpenAI]
+  - NL to DAX Service
+  - Answer Generation
+        |
+        v
+[Consumption Layer]
+  - Power BI Reports
+  - NL Query API
+  - Custom Apps`
 
 export function DeploymentStep({ onBack }: DeploymentStepProps) {
   const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set())
@@ -123,13 +104,12 @@ export function DeploymentStep({ onBack }: DeploymentStepProps) {
   return (
     <div className="animate-fade-in">
       <h2 className="text-3xl font-bold tracking-tight text-foreground">
-        Deployment & Best Practices
+        Deployment and Best Practices
       </h2>
       <p className="mt-2 text-muted-foreground">
         Deploy your semantic layer and set up for production use.
       </p>
 
-      {/* Deployment Checklist */}
       <Card className="mt-8">
         <CardHeader>
           <CardTitle>Deployment Checklist</CardTitle>
@@ -155,7 +135,6 @@ export function DeploymentStep({ onBack }: DeploymentStepProps) {
         </CardContent>
       </Card>
 
-      {/* Best Practices */}
       <div className="mt-8">
         <h3 className="text-xl font-semibold">Best Practices</h3>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -176,7 +155,6 @@ export function DeploymentStep({ onBack }: DeploymentStepProps) {
         </div>
       </div>
 
-      {/* Final Architecture */}
       <div className="mt-8">
         <h3 className="text-xl font-semibold">Final Architecture</h3>
         <div className="mt-4">
@@ -184,12 +162,10 @@ export function DeploymentStep({ onBack }: DeploymentStepProps) {
         </div>
       </div>
 
-      {/* Completion Message */}
       <div className="mt-8 rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 p-8 text-center text-white">
-        <h3 className="text-2xl font-bold">You&apos;re Ready!</h3>
+        <h3 className="text-2xl font-bold">You are Ready!</h3>
         <p className="mx-auto mt-2 max-w-lg text-white/80">
-          You now have a complete guide to building a semantic layer for your ACC data. Follow the
-          steps above to implement each component.
+          You now have a complete guide to building a semantic layer for your ACC data.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Button
@@ -203,23 +179,6 @@ export function DeploymentStep({ onBack }: DeploymentStepProps) {
           <Button
             variant="outline"
             className="gap-2 border-white/30 bg-transparent text-white hover:bg-white/10"
-            onClick={() => {
-              // Download all code snippets as markdown
-              const codeBlocks = document.querySelectorAll("pre code")
-              let allCode = "# ACC Semantic Layer Guide - Code Export\n\n"
-              codeBlocks.forEach((block, index) => {
-                allCode += `## Code Block ${index + 1}\n\`\`\`\n${block.textContent}\n\`\`\`\n\n`
-              })
-              const blob = new Blob([allCode], { type: "text/markdown" })
-              const url = URL.createObjectURL(blob)
-              const a = document.createElement("a")
-              a.href = url
-              a.download = "acc-semantic-layer-code.md"
-              document.body.appendChild(a)
-              a.click()
-              document.body.removeChild(a)
-              URL.revokeObjectURL(url)
-            }}
           >
             <Download className="h-4 w-4" />
             Download All Code

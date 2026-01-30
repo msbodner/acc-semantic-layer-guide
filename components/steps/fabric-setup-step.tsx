@@ -21,7 +21,7 @@ const setupSteps = [
             Go to <strong>app.fabric.microsoft.com</strong>
           </li>
           <li>
-            Click <strong>Workspaces</strong> → <strong>New workspace</strong>
+            Click <strong>Workspaces</strong> then <strong>New workspace</strong>
           </li>
           <li>
             Name it <code className="rounded bg-muted px-1.5 py-0.5 text-xs">ACC-Analytics</code>
@@ -44,7 +44,7 @@ const setupSteps = [
         <p className="text-muted-foreground">Set up the lakehouse for raw and curated ACC data:</p>
         <ol className="mt-3 list-inside list-decimal space-y-2 text-sm text-foreground">
           <li>
-            In your workspace, click <strong>+ New</strong> → <strong>Lakehouse</strong>
+            In your workspace, click <strong>+ New</strong> then <strong>Lakehouse</strong>
           </li>
           <li>
             Name it <code className="rounded bg-muted px-1.5 py-0.5 text-xs">ACC_Lakehouse</code>
@@ -60,17 +60,17 @@ const setupSteps = [
           className="mt-4"
           code={`# Recommended folder structure
 ACC_Lakehouse/
-├── Tables/
-│   ├── raw_projects
-│   ├── raw_issues
-│   ├── raw_rfis
-│   ├── raw_contracts
-│   ├── raw_change_orders
-│   └── raw_documents
-├── Files/
-│   ├── raw/           # Landing zone for API data
-│   ├── curated/       # Cleaned & transformed
-│   └── semantic/      # Model artifacts`}
+  Tables/
+    raw_projects
+    raw_issues
+    raw_rfis
+    raw_contracts
+    raw_change_orders
+    raw_documents
+  Files/
+    raw/           # Landing zone for API data
+    curated/       # Cleaned and transformed
+    semantic/      # Model artifacts`}
         />
       </>
     ),

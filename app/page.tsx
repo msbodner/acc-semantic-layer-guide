@@ -1,8 +1,6 @@
 "use client"
 
 import { useState, useCallback } from "react"
-
-// Components
 import { Sidebar } from "../components/sidebar"
 import { OverviewStep } from "../components/steps/overview-step"
 import { AccDataStep } from "../components/steps/acc-data-step"
@@ -11,8 +9,6 @@ import { SemanticModelStep } from "../components/steps/semantic-model-step"
 import { AIIntegrationStep } from "../components/steps/ai-integration-step"
 import { NLQueriesStep } from "../components/steps/nl-queries-step"
 import { DeploymentStep } from "../components/steps/deployment-step"
-
-// Data
 import { STEPS, type StepId } from "../lib/data"
 
 export default function Home() {
@@ -22,7 +18,6 @@ export default function Home() {
   const [selectedTemplate, setSelectedTemplate] = useState("comprehensive")
 
   const navigateToStep = useCallback((stepId: StepId) => {
-    // Mark current step as completed if moving forward
     setCompletedSteps((prev) => {
       if (!prev.includes(currentStep)) {
         return [...prev, currentStep]

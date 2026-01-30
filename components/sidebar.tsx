@@ -1,6 +1,5 @@
 "use client"
 
-// Relative imports for module resolution
 import { cn } from "../lib/utils"
 import { STEPS, type StepId } from "../lib/data"
 import { Check } from "lucide-react"
@@ -17,13 +16,11 @@ export function Sidebar({ currentStep, completedSteps, onStepClick }: SidebarPro
 
   return (
     <nav className="fixed left-0 top-0 z-50 flex h-screen w-72 flex-col bg-[hsl(var(--sidebar-bg))] text-[hsl(var(--sidebar-foreground))]">
-      {/* Logo */}
       <div className="px-6 py-6">
         <h1 className="text-xl font-bold tracking-tight">ACC Semantic Layer</h1>
         <p className="mt-1 text-sm text-sky-400">Build Guide</p>
       </div>
 
-      {/* Navigation Menu */}
       <ul className="mt-2 flex-1 space-y-1 px-4">
         {STEPS.map((step) => {
           const isActive = currentStep === step.id
@@ -60,7 +57,6 @@ export function Sidebar({ currentStep, completedSteps, onStepClick }: SidebarPro
         })}
       </ul>
 
-      {/* Progress Bar */}
       <div className="px-6 pb-6">
         <div className="h-1 overflow-hidden rounded-full bg-white/10">
           <div

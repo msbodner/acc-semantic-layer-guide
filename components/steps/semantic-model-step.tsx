@@ -39,9 +39,7 @@ export function SemanticModelStep({
     ? generateDaxCode(selectedSchemas) 
     : `// Select schemas in Step 2 to generate DAX measures
 
-// Example measures that will be generated:
-
-// Project Metrics
+// Example measures:
 Project Count = COUNTROWS(dim_project)
 
 Active Projects =
@@ -50,80 +48,26 @@ CALCULATE(
     dim_project[status] = "Active"
 )
 
-// Issue Metrics
 Total Issues = COUNTROWS(fact_issues)
 
 Open Issues =
 CALCULATE(
     COUNTROWS(fact_issues),
     fact_issues[status] <> "Closed"
-)
-
-Avg Days to Close =
-AVERAGE(fact_issues[days_open])
-
-Issue Resolution Rate =
-DIVIDE(
-    CALCULATE(COUNTROWS(fact_issues), fact_issues[status] = "Closed"),
-    COUNTROWS(fact_issues)
-)
-
-// Cost Metrics
-Total Budget = SUM(dim_budget[revised_amount])
-
-Total Committed = SUM(dim_budget[committed_amount])
-
-Total Actual = SUM(dim_budget[actual_amount])
-
-Budget Variance = [Total Budget] - [Total Actual]
-
-Budget Variance % =
-DIVIDE([Budget Variance], [Total Budget])`
+)`
 
   const tmdlCode = selectedSchemas.length > 0 
     ? generateTmdl(selectedSchemas)
     : `// TMDL (Tabular Model Definition Language)
-// Use this to create your semantic model programmatically
-
 model ACC_Semantic_Model
     culture: en-US
     defaultPowerBIDataSourceVersion: powerBI_V3
 
-    annotations:
-        - name: Description
-          value: Semantic model for Autodesk Construction Cloud data
-
-    // Shared expressions for data source
-    expression ACC_Lakehouse =
-        let
-            Source = Lakehouse.Contents(null, null),
-            Navigation = Source{[workspaceId="your-workspace-id"]}[Data],
-            Lakehouse = Navigation{[lakehouseId="your-lakehouse-id"]}[Data]
-        in
-            Lakehouse
-
     table dim_project
         description: Project dimension table
-        lineageTag: project-dimension
-
         column project_id
             dataType: string
-            isKey: true
-            summarizeBy: none
-
-        column project_name
-            dataType: string
-            summarizeBy: none
-
-        column status
-            dataType: string
-            summarizeBy: none
-
-        partition dim_project-partition = m
-            mode: directLake
-            source =
-                entity "dim_project"
-                    entityPath: "ACC_Lakehouse/dim_project"`
+            isKey: true`
 
   return (
     <div className="animate-fade-in">
@@ -132,7 +76,6 @@ model ACC_Semantic_Model
         Create a Power BI / Fabric semantic model with business-friendly metrics and relationships.
       </p>
 
-      {/* Template Selector */}
       <div className="mt-8">
         <h3 className="text-lg font-semibold">Choose a Template</h3>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -159,15 +102,11 @@ model ACC_Semantic_Model
                 {template.complexity}
               </span>
               <p className="mt-2 text-sm text-muted-foreground">{template.description}</p>
-              <p className="mt-2 text-xs text-muted-foreground">
-                <strong>Use case:</strong> {template.use_case}
-              </p>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Model Builder */}
       <Card className="mt-8">
         <CardHeader>
           <CardTitle>Generated Model Configuration</CardTitle>

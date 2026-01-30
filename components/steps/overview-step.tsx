@@ -80,10 +80,9 @@ export function OverviewStep({ onNext }: OverviewStepProps) {
         Building a Semantic Layer for ACC Data
       </h2>
 
-      {/* Intro Card */}
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>What You&apos;ll Build</CardTitle>
+          <CardTitle>What You Will Build</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground leading-relaxed">
@@ -94,7 +93,6 @@ export function OverviewStep({ onNext }: OverviewStepProps) {
         </CardContent>
       </Card>
 
-      {/* Architecture Diagram */}
       <Card className="mt-8">
         <CardHeader>
           <CardTitle>Architecture Overview</CardTitle>
@@ -144,7 +142,6 @@ export function OverviewStep({ onNext }: OverviewStepProps) {
         </CardContent>
       </Card>
 
-      {/* Benefits Grid */}
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {benefits.map((benefit) => (
           <Card key={benefit.title} className={`border-l-4 ${benefit.color}`}>
@@ -159,7 +156,6 @@ export function OverviewStep({ onNext }: OverviewStepProps) {
         ))}
       </div>
 
-      {/* CTA Button */}
       <Button onClick={onNext} className="mt-8 gap-2" size="lg">
         Get Started
         <ArrowRight className="h-4 w-4" />
