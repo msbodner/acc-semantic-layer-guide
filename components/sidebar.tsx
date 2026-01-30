@@ -1,5 +1,6 @@
 "use client"
 
+// Relative imports for module resolution
 import { cn } from "../lib/utils"
 import { STEPS, type StepId } from "../lib/data"
 import { Check } from "lucide-react"
