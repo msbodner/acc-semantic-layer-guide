@@ -1,5 +1,6 @@
 "use client"
 
+// Step navigation component
 import { Button } from "./ui/button"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 

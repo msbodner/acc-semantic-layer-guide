@@ -1,5 +1,6 @@
 "use client"
 
+// Deployment step component
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Checkbox } from "../ui/checkbox"
