@@ -1,12 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
-import { StepNavigation } from "../step-navigation"
-import { CodeBlock } from "../code-block"
-import { FABRIC_TEMPLATES, generateDaxCode, generateTmdl } from "../../lib/data"
-import { cn } from "../../lib/utils"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { StepNavigation } from "@/components/step-navigation"
+import { CodeBlock } from "@/components/code-block"
+import { FABRIC_TEMPLATES, generateDaxCode, generateTmdl } from "@/lib/data"
+import { cn } from "@/lib/utils"
 
 interface SemanticModelStepProps {
   onNext: () => void

@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
-import { Checkbox } from "../ui/checkbox"
-import { StepNavigation } from "../step-navigation"
-import { CodeBlock } from "../code-block"
-import { Button } from "../ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { StepNavigation } from "@/components/step-navigation"
+import { CodeBlock } from "@/components/code-block"
+import { Button } from "@/components/ui/button"
 import { CheckCircle2, Download, FileText, Rocket } from "lucide-react"
 
 interface DeploymentStepProps {

@@ -1,7 +1,7 @@
 "use client"
 
-import { cn } from "../lib/utils"
-import { STEPS, type StepId } from "../lib/data"
+import { cn } from "@/lib/utils"
+import { STEPS, type StepId } from "@/lib/data"
 import { Check } from "lucide-react"
 
 interface SidebarProps {

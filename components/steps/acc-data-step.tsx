@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
-import { StepNavigation } from "../step-navigation"
-import { ACC_DATA_SCHEMAS, type Schema } from "../../lib/data"
-import { cn } from "../../lib/utils"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { StepNavigation } from "@/components/step-navigation"
+import { ACC_DATA_SCHEMAS, type Schema } from "@/lib/data"
+import { cn } from "@/lib/utils"
 import { Database, FileText, DollarSign, FolderOpen, Calendar } from "lucide-react"
 
 interface AccDataStepProps {

@@ -1,10 +1,10 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
-import { StepNavigation } from "../step-navigation"
-import { CodeBlock } from "../code-block"
-import { AI_PLATFORMS, AZURE_OPENAI_SETUP } from "../../lib/data"
-import { cn } from "../../lib/utils"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { StepNavigation } from "@/components/step-navigation"
+import { CodeBlock } from "@/components/code-block"
+import { AI_PLATFORMS, AZURE_OPENAI_SETUP } from "@/lib/data"
+import { cn } from "@/lib/utils"
 import { Brain, Sparkles, Zap } from "lucide-react"
 
 interface AIIntegrationStepProps {

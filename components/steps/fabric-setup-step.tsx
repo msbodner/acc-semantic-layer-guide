@@ -1,8 +1,8 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
-import { StepNavigation } from "../step-navigation"
-import { CodeBlock } from "../code-block"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { StepNavigation } from "@/components/step-navigation"
+import { CodeBlock } from "@/components/code-block"
 import { Cloud, Database, Workflow, Shield } from "lucide-react"
 
 interface FabricSetupStepProps {
