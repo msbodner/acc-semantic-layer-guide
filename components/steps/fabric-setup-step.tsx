@@ -1,6 +1,5 @@
 "use client"
 
-// Fabric setup step component
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { StepNavigation } from "../step-navigation"
 import { CodeBlock } from "../code-block"

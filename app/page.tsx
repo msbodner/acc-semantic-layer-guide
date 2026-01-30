@@ -1,9 +1,6 @@
 "use client"
 
-// React imports
 import { useState, useCallback } from "react"
-
-// Component imports - using relative paths
 import { Sidebar } from "../components/sidebar"
 import { OverviewStep } from "../components/steps/overview-step"
 import { AccDataStep } from "../components/steps/acc-data-step"
@@ -12,8 +9,6 @@ import { SemanticModelStep } from "../components/steps/semantic-model-step"
 import { AIIntegrationStep } from "../components/steps/ai-integration-step"
 import { NLQueriesStep } from "../components/steps/nl-queries-step"
 import { DeploymentStep } from "../components/steps/deployment-step"
-
-// Data imports
 import { STEPS, type StepId } from "../lib/data"
 
 export default function Home() {

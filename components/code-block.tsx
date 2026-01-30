@@ -1,6 +1,5 @@
 "use client"
 
-// Code block component with copy functionality
 import { useState } from "react"
 import { Check, Copy } from "lucide-react"
 import { Button } from "./ui/button"

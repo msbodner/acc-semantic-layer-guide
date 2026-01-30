@@ -1,6 +1,5 @@
 "use client"
 
-// Sidebar component with relative imports
 import { cn } from "../lib/utils"
 import { STEPS, type StepId } from "../lib/data"
 import { Check } from "lucide-react"

@@ -1,6 +1,5 @@
 "use client"
 
-// Natural language queries step component
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { StepNavigation } from "../step-navigation"
 import { CodeBlock } from "../code-block"

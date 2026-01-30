@@ -1,6 +1,5 @@
 "use client"
 
-// ACC Data step component
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { StepNavigation } from "../step-navigation"
