@@ -4,89 +4,116 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { StepNavigation } from "../step-navigation"
 import { CodeBlock } from "../code-block"
 import { EXAMPLE_PROMPTS } from "../../lib/data"
+import { MessageSquare, Lightbulb } from "lucide-react"
 
 interface NLQueriesStepProps {
-  onBack: () => void
   onNext: () => void
+  onPrevious: () => void
+  isFirst: boolean
+  isLast: boolean
 }
 
-const implementationCode = `"""
-Natural Language to DAX Query Service
-"""
+export function NLQueriesStep({ onNext, onPrevious, isFirst, isLast }: NLQueriesStepProps) {
+  const promptEngineeringCode = `// System prompt for construction data queries
+const systemPrompt = \`You are an AI assistant helping analyze construction project data.
+You have access to the following data domains:
+- Projects: Project metadata, status, and team members
+- Issues/RFIs: Quality issues, RFIs, and their resolution status
+- Cost Management: Budget items, change orders, and cost tracking
+- Documents: File metadata, versions, and approval status
+- Schedules: Activities, milestones, and dependencies
 
-import os
-from openai import AzureOpenAI
-from azure.identity import DefaultAzureCredential
-import requests
+When generating DAX queries:
+1. Always filter by project_id when relevant
+2. Use CALCULATE for context modification
+3. Return results suitable for visualization
+4. Consider time intelligence for trend analysis
 
-class ACCSemanticQueryService:
-    def __init__(self):
-        self.openai_client = AzureOpenAI(
-            azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
-            api_key=os.environ["AZURE_OPENAI_KEY"],
-            api_version="2024-02-15-preview"
-        )
-        self.fabric_token = self._get_fabric_token()
-        
-    def natural_language_to_dax(self, question: str) -> str:
-        """Convert natural language question to DAX query"""
-        response = self.openai_client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "Convert to DAX query..."},
-                {"role": "user", "content": question}
-            ],
-            temperature=0
-        )
-        return response.choices[0].message.content.strip()
-        
-    def execute_dax_query(self, dax_query: str) -> dict:
-        """Execute DAX query against Fabric semantic model"""
-        url = f"https://api.powerbi.com/v1.0/myorg/groups/{self.workspace_id}/datasets/{self.semantic_model_id}/executeQueries"
-        headers = {"Authorization": f"Bearer {self.fabric_token}"}
-        payload = {"queries": [{"query": dax_query}]}
-        response = requests.post(url, headers=headers, json=payload)
-        return response.json()
-        
-    def answer_question(self, question: str) -> dict:
-        """Full pipeline: question -> DAX -> results"""
-        dax_query = self.natural_language_to_dax(question)
-        results = self.execute_dax_query(dax_query)
-        return {"question": question, "dax_query": dax_query, "results": results}`
+Format your response as:
+- Natural language explanation
+- DAX query (if applicable)
+- Suggested visualization type\`;`
 
-export function NLQueriesStep({ onBack, onNext }: NLQueriesStepProps) {
   return (
-    <div className="animate-fade-in">
-      <h2 className="text-3xl font-bold tracking-tight text-foreground">
-        Natural Language Query Interface
-      </h2>
-      <p className="mt-2 text-muted-foreground">
-        Enable users to ask questions about ACC data in plain English.
-      </p>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Natural Language Queries</h1>
+        <p className="mt-2 text-lg text-muted-foreground">
+          Enable business users to query ACC data using natural language through your AI-powered semantic layer.
+        </p>
+      </div>
 
-      <Card className="mt-8">
+      <Card>
         <CardHeader>
-          <CardTitle>How It Works</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 text-primary" />
+            Example Queries
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Sample natural language queries your semantic layer can handle
+          </p>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap items-center justify-center gap-2">
+          <div className="grid gap-4 md:grid-cols-2">
+            {EXAMPLE_PROMPTS.map((example) => (
+              <div key={example.category} className="space-y-3 p-4 rounded-lg bg-muted/50">
+                <h4 className="font-medium text-foreground">{example.category}</h4>
+                <ul className="space-y-2">
+                  {example.prompts.map((prompt) => (
+                    <li key={prompt} className="text-sm text-muted-foreground flex items-start gap-2">
+                      <MessageSquare className="w-3 h-3 mt-1 text-primary shrink-0" />
+                      {prompt}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lightbulb className="w-5 h-5 text-primary" />
+            Prompt Engineering
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Configure your system prompt for optimal query understanding
+          </p>
+        </CardHeader>
+        <CardContent>
+          <CodeBlock
+            code={promptEngineeringCode}
+            language="typescript"
+            title="System Prompt Configuration"
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Query Processing Pipeline</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {[
-              { step: 1, text: "User asks question" },
-              { step: 2, text: "Azure OpenAI translates to DAX" },
-              { step: 3, text: "Query executes against Fabric" },
-              { step: 4, text: "Results returned with explanation" },
-            ].map((item, index) => (
-              <div key={item.step} className="flex items-center gap-2">
-                <div className="rounded-lg bg-gradient-to-r from-blue-600 to-blue-800 p-4 text-center text-white max-w-[180px]">
-                  <span className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-sm font-semibold">
+              { step: 1, label: "Natural Language Input", desc: "User asks a question" },
+              { step: 2, label: "Intent Classification", desc: "AI determines query type" },
+              { step: 3, label: "DAX Generation", desc: "Generate semantic model query" },
+              { step: 4, label: "Query Execution", desc: "Run against Fabric" },
+              { step: 5, label: "Response Formatting", desc: "Present insights to user" },
+            ].map((item, index, arr) => (
+              <div key={item.step} className="flex items-center gap-4">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-medium">
                     {item.step}
-                  </span>
-                  <p className="mt-2 text-xs leading-relaxed">{item.text}</p>
+                  </div>
+                  <span className="text-sm font-medium mt-2 text-foreground">{item.label}</span>
+                  <span className="text-xs text-muted-foreground">{item.desc}</span>
                 </div>
-                {index < 3 && (
-                  <svg className="h-6 w-6 shrink-0 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                {index < arr.length - 1 && (
+                  <div className="hidden md:block w-8 h-0.5 bg-border" />
                 )}
               </div>
             ))}
@@ -94,36 +121,12 @@ export function NLQueriesStep({ onBack, onNext }: NLQueriesStepProps) {
         </CardContent>
       </Card>
 
-      <div className="mt-8">
-        <h3 className="text-xl font-semibold">Implementation</h3>
-        <div className="mt-4">
-          <CodeBlock code={implementationCode} language="Python" />
-        </div>
-      </div>
-
-      <div className="mt-8">
-        <h3 className="text-xl font-semibold">Example Queries by Category</h3>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {EXAMPLE_PROMPTS.map((category) => (
-            <Card key={category.category}>
-              <CardHeader>
-                <CardTitle className="text-base text-primary">{category.category}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {category.questions.map((question, i) => (
-                    <li key={i} className="border-b border-border pb-2 text-sm text-muted-foreground last:border-0 last:pb-0">
-                      &quot;{question}&quot;
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      <StepNavigation onBack={onBack} onNext={onNext} />
+      <StepNavigation
+        onNext={onNext}
+        onPrevious={onPrevious}
+        isFirst={isFirst}
+        isLast={isLast}
+      />
     </div>
   )
 }

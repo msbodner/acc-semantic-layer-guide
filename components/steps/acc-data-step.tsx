@@ -8,147 +8,129 @@ import { cn } from "../../lib/utils"
 import { Database, FileText, DollarSign, FolderOpen, Calendar } from "lucide-react"
 
 interface AccDataStepProps {
-  onBack: () => void
   onNext: () => void
-  selectedSchemas: string[]
-  onSchemasChange: (schemas: string[]) => void
+  onPrevious: () => void
+  isFirst: boolean
+  isLast: boolean
 }
 
-const schemaIcons: Record<string, React.ElementType> = {
+const schemaIcons: Record<string, typeof Database> = {
   projects: Database,
-  issues: FileText,
-  cost: DollarSign,
+  "issues-rfis": FileText,
+  "cost-management": DollarSign,
   documents: FolderOpen,
-  schedule: Calendar,
+  schedules: Calendar,
 }
 
-export function AccDataStep({
-  onBack,
-  onNext,
-  selectedSchemas,
-  onSchemasChange,
-}: AccDataStepProps) {
-  const [activeSchema, setActiveSchema] = useState<string | null>(
-    selectedSchemas[0] || null
-  )
-
-  const toggleSchema = (key: string) => {
-    const newSelected = selectedSchemas.includes(key)
-      ? selectedSchemas.filter((s) => s !== key)
-      : [...selectedSchemas, key]
-    onSchemasChange(newSelected)
-    setActiveSchema(key)
-  }
-
-  const activeSchemaData = activeSchema ? ACC_DATA_SCHEMAS[activeSchema] : null
+export function AccDataStep({ onNext, onPrevious, isFirst, isLast }: AccDataStepProps) {
+  const [selectedSchema, setSelectedSchema] = useState<Schema>(ACC_DATA_SCHEMAS[0])
 
   return (
-    <div className="animate-fade-in">
-      <h2 className="text-3xl font-bold tracking-tight text-foreground">ACC Data Schemas</h2>
-      <p className="mt-2 text-muted-foreground">
-        Select the ACC modules you want to include in your semantic layer. Each module includes
-        pre-defined tables, columns, and suggested measures.
-      </p>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">ACC Data Schemas</h1>
+        <p className="mt-2 text-lg text-muted-foreground">
+          Explore the data schemas available from Autodesk Construction Cloud. Select a schema to view its tables and columns.
+        </p>
+      </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {Object.entries(ACC_DATA_SCHEMAS).map(([key, schema]) => {
-          const Icon = schemaIcons[key] || Database
-          const isSelected = selectedSchemas.includes(key)
+      <div className="grid gap-4 md:grid-cols-5">
+        {ACC_DATA_SCHEMAS.map((schema) => {
+          const Icon = schemaIcons[schema.id] || Database
+          const isSelected = selectedSchema.id === schema.id
 
           return (
             <button
-              key={key}
-              onClick={() => toggleSchema(key)}
+              key={schema.id}
+              onClick={() => setSelectedSchema(schema)}
               className={cn(
-                "flex items-start gap-3 rounded-lg border-2 p-4 text-left transition-all hover:border-primary/50",
+                "flex flex-col items-center gap-2 p-4 rounded-lg border transition-all",
                 isSelected
-                  ? "border-primary bg-primary/5"
-                  : "border-border bg-card"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card hover:border-primary/50 text-muted-foreground hover:text-foreground"
               )}
             >
-              <div
-                className={cn(
-                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
-                  isSelected ? "bg-primary text-primary-foreground" : "bg-muted"
-                )}
-              >
-                <Icon className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="font-semibold">{schema.name}</h4>
-                <p className="mt-0.5 text-sm text-muted-foreground">{schema.description}</p>
-              </div>
+              <Icon className="w-6 h-6" />
+              <span className="text-sm font-medium text-center">{schema.name}</span>
             </button>
           )
         })}
       </div>
 
-      <Card className="mt-8">
+      <Card>
         <CardHeader>
-          <CardTitle>
-            {activeSchemaData ? activeSchemaData.name : "Select a schema to view details"}
+          <CardTitle className="flex items-center gap-2">
+            {(() => {
+              const Icon = schemaIcons[selectedSchema.id] || Database
+              return <Icon className="w-5 h-5" />
+            })()}
+            {selectedSchema.name}
           </CardTitle>
+          <p className="text-sm text-muted-foreground">{selectedSchema.description}</p>
         </CardHeader>
         <CardContent>
-          {activeSchemaData ? (
-            <SchemaDetails schema={activeSchemaData} />
-          ) : (
-            <p className="text-muted-foreground">
-              Click on any schema above to explore its tables and columns.
-            </p>
-          )}
+          <div className="space-y-6">
+            {selectedSchema.tables.map((table) => (
+              <div key={table.name} className="space-y-2">
+                <h4 className="font-medium text-foreground flex items-center gap-2">
+                  <Database className="w-4 h-4 text-primary" />
+                  {table.name}
+                </h4>
+                <p className="text-sm text-muted-foreground">{table.description}</p>
+                <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+                  {table.columns.map((column) => (
+                    <div
+                      key={column.name}
+                      className="flex items-center justify-between p-2 rounded bg-muted/50 text-sm"
+                    >
+                      <span className="font-mono text-foreground">{column.name}</span>
+                      <span className="text-xs text-muted-foreground px-2 py-0.5 rounded bg-background">
+                        {column.type}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
-      <StepNavigation onBack={onBack} onNext={onNext} />
-    </div>
-  )
-}
+      <Card>
+        <CardHeader>
+          <CardTitle>Data Relationships</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">
+            Key relationships between ACC data entities that you will model in your semantic layer:
+          </p>
+          <ul className="space-y-2 text-sm">
+            <li className="flex items-start gap-2">
+              <span className="text-primary">-</span>
+              <span className="text-muted-foreground">Projects connect to all other entities via project_id</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary">-</span>
+              <span className="text-muted-foreground">Issues and RFIs can be linked to specific documents</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary">-</span>
+              <span className="text-muted-foreground">Cost items relate to schedule activities for earned value analysis</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary">-</span>
+              <span className="text-muted-foreground">Documents have version history and approval workflows</span>
+            </li>
+          </ul>
+        </CardContent>
+      </Card>
 
-function SchemaDetails({ schema }: { schema: Schema }) {
-  return (
-    <div className="space-y-6">
-      <p className="text-muted-foreground">{schema.description}</p>
-
-      {schema.tables.map((table) => (
-        <div key={table.name} className="border-t pt-4">
-          <h4 className="font-semibold text-primary">{table.name}</h4>
-          <p className="mt-1 text-sm text-muted-foreground">{table.description}</p>
-
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            {table.columns.map((col) => (
-              <div
-                key={col.name}
-                className="flex items-center gap-2 rounded-md bg-muted/50 p-2"
-              >
-                <code className="rounded bg-[hsl(var(--sidebar-bg))] px-2 py-0.5 text-xs text-sky-400">
-                  {col.name}
-                </code>
-                <span className="text-xs text-muted-foreground">{col.description}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-
-      {schema.semantic_model.measures.length > 0 && (
-        <div className="border-t pt-4">
-          <h4 className="font-semibold text-primary">Suggested Measures</h4>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            {schema.semantic_model.measures.map((measure) => (
-              <div
-                key={measure.name}
-                className="flex items-center gap-2 rounded-md bg-muted/50 p-2"
-              >
-                <code className="rounded bg-[hsl(var(--sidebar-bg))] px-2 py-0.5 text-xs text-sky-400">
-                  {measure.name}
-                </code>
-                <span className="text-xs text-muted-foreground">{measure.description}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <StepNavigation
+        onNext={onNext}
+        onPrevious={onPrevious}
+        isFirst={isFirst}
+        isLast={isLast}
+      />
     </div>
   )
 }

@@ -6,187 +6,177 @@ import { Checkbox } from "../ui/checkbox"
 import { StepNavigation } from "../step-navigation"
 import { CodeBlock } from "../code-block"
 import { Button } from "../ui/button"
-import { Download, FileText } from "lucide-react"
+import { CheckCircle2, Download, FileText, Rocket } from "lucide-react"
 
 interface DeploymentStepProps {
-  onBack: () => void
+  onPrevious: () => void
+  isFirst: boolean
+  isLast: boolean
 }
 
-const checklistItems = [
-  "Fabric workspace configured with appropriate capacity",
-  "ACC data ingestion pipeline tested and scheduled",
-  "Semantic model created with all measures and relationships",
-  "Row-level security (RLS) configured for project access",
-  "Azure OpenAI resource deployed and models configured",
-  "Natural language query service tested with sample questions",
-  "Power BI reports created and shared",
-  "API endpoints documented and secured",
-]
+export function DeploymentStep({ onPrevious, isFirst, isLast }: DeploymentStepProps) {
+  const [checklist, setChecklist] = useState<Record<string, boolean>>({})
 
-const bestPractices = [
-  {
-    title: "Data Freshness",
-    color: "border-t-blue-600",
-    items: [
-      "Schedule incremental refresh for large tables",
-      "Use change data capture (CDC) when available",
-      "Set appropriate refresh frequency",
-    ],
-  },
-  {
-    title: "Security",
-    color: "border-t-sky-500",
-    items: [
-      "Implement row-level security based on project membership",
-      "Use managed identity for service connections",
-      "Store API keys in Azure Key Vault",
-    ],
-  },
-  {
-    title: "Performance",
-    color: "border-t-orange-500",
-    items: [
-      "Use Direct Lake mode for large datasets",
-      "Create aggregation tables for common queries",
-      "Monitor query performance in Fabric metrics",
-    ],
-  },
-  {
-    title: "Natural Language Quality",
-    color: "border-t-emerald-500",
-    items: [
-      "Add detailed descriptions to all measures",
-      "Include synonyms for construction terminology",
-      "Test with real user questions and iterate",
-    ],
-  },
-]
+  const deploymentChecklist = [
+    { id: "fabric-workspace", label: "Fabric workspace created and configured" },
+    { id: "lakehouse", label: "Lakehouse set up with ACC data tables" },
+    { id: "semantic-model", label: "Semantic model published with all measures" },
+    { id: "azure-openai", label: "Azure OpenAI resource deployed" },
+    { id: "security", label: "Row-level security configured" },
+    { id: "monitoring", label: "Monitoring and alerting set up" },
+    { id: "documentation", label: "User documentation completed" },
+    { id: "training", label: "End-user training scheduled" },
+  ]
 
-const architectureDiagram = `ACC SEMANTIC LAYER ARCHITECTURE
+  const cicdPipeline = `# Azure DevOps Pipeline for Semantic Model Deployment
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - semantic-model/**
 
-[Autodesk Construction Cloud]
-        |
-        v
-[Microsoft Fabric Lakehouse]
-  - Raw Tables
-  - Curated Tables
-        |
-        v
-[Semantic Model]
-  - Dimensions
-  - Facts
-  - Measures
-        |
-        v
-[Azure OpenAI]
-  - NL to DAX Service
-  - Answer Generation
-        |
-        v
-[Consumption Layer]
-  - Power BI Reports
-  - NL Query API
-  - Custom Apps`
+pool:
+  vmImage: 'ubuntu-latest'
 
-export function DeploymentStep({ onBack }: DeploymentStepProps) {
-  const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set())
+stages:
+  - stage: Build
+    jobs:
+      - job: ValidateModel
+        steps:
+          - task: UseDotNet@2
+            inputs:
+              version: '6.x'
+          - script: |
+              dotnet tool install -g Microsoft.PowerBI.Cli
+              pbi model validate ./semantic-model
+            displayName: 'Validate TMDL'
 
-  const toggleItem = (index: number) => {
-    const newChecked = new Set(checkedItems)
-    if (newChecked.has(index)) {
-      newChecked.delete(index)
-    } else {
-      newChecked.add(index)
-    }
-    setCheckedItems(newChecked)
+  - stage: Deploy
+    dependsOn: Build
+    jobs:
+      - deployment: DeployToFabric
+        environment: 'production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: |
+                    pbi model deploy \\
+                      --workspace "\$(FABRIC_WORKSPACE)" \\
+                      --model "./semantic-model"
+                  displayName: 'Deploy Semantic Model'`
+
+  const toggleCheck = (id: string) => {
+    setChecklist((prev) => ({ ...prev, [id]: !prev[id] }))
   }
 
-  return (
-    <div className="animate-fade-in">
-      <h2 className="text-3xl font-bold tracking-tight text-foreground">
-        Deployment and Best Practices
-      </h2>
-      <p className="mt-2 text-muted-foreground">
-        Deploy your semantic layer and set up for production use.
-      </p>
+  const completedCount = Object.values(checklist).filter(Boolean).length
 
-      <Card className="mt-8">
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Deployment</h1>
+        <p className="mt-2 text-lg text-muted-foreground">
+          Complete your semantic layer deployment with this final checklist and CI/CD configuration.
+        </p>
+      </div>
+
+      <Card>
         <CardHeader>
-          <CardTitle>Deployment Checklist</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-primary" />
+              Deployment Checklist
+            </span>
+            <span className="text-sm font-normal text-muted-foreground">
+              {completedCount} of {deploymentChecklist.length} completed
+            </span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {checklistItems.map((item, index) => (
+            {deploymentChecklist.map((item) => (
               <label
-                key={index}
-                className="flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors hover:bg-muted/50"
+                key={item.id}
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer"
               >
                 <Checkbox
-                  checked={checkedItems.has(index)}
-                  onCheckedChange={() => toggleItem(index)}
+                  checked={checklist[item.id] || false}
+                  onCheckedChange={() => toggleCheck(item.id)}
                 />
-                <span className="text-sm">{item}</span>
+                <span className={checklist[item.id] ? "text-muted-foreground line-through" : "text-foreground"}>
+                  {item.label}
+                </span>
               </label>
             ))}
           </div>
-          <p className="mt-4 text-sm text-muted-foreground">
-            {checkedItems.size} of {checklistItems.length} items completed
-          </p>
         </CardContent>
       </Card>
 
-      <div className="mt-8">
-        <h3 className="text-xl font-semibold">Best Practices</h3>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          {bestPractices.map((practice) => (
-            <Card key={practice.title} className={`border-t-4 ${practice.color}`}>
-              <CardHeader>
-                <CardTitle className="text-base">{practice.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="list-inside list-disc space-y-1.5 text-sm text-muted-foreground">
-                  {practice.items.map((item, i) => (
-                    <li key={i}>{item}</li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Rocket className="w-5 h-5 text-primary" />
+            CI/CD Pipeline
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Automate your semantic model deployments with Azure DevOps
+          </p>
+        </CardHeader>
+        <CardContent>
+          <CodeBlock code={cicdPipeline} language="yaml" title="azure-pipelines.yml" />
+        </CardContent>
+      </Card>
 
-      <div className="mt-8">
-        <h3 className="text-xl font-semibold">Final Architecture</h3>
-        <div className="mt-4">
-          <CodeBlock code={architectureDiagram} />
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Best Practices</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            {[
+              { title: "Version Control", desc: "Use TMDL format for semantic model source control" },
+              { title: "Environment Separation", desc: "Maintain dev, test, and prod workspaces" },
+              { title: "Incremental Refresh", desc: "Configure for large datasets to reduce refresh time" },
+              { title: "Monitoring", desc: "Set up alerts for refresh failures and performance issues" },
+            ].map((practice) => (
+              <div key={practice.title} className="p-4 rounded-lg bg-muted/50">
+                <h4 className="font-medium text-foreground">{practice.title}</h4>
+                <p className="text-sm text-muted-foreground mt-1">{practice.desc}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="mt-8 rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 p-8 text-center text-white">
-        <h3 className="text-2xl font-bold">You are Ready!</h3>
-        <p className="mx-auto mt-2 max-w-lg text-white/80">
-          You now have a complete guide to building a semantic layer for your ACC data.
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Button
-            variant="secondary"
-            className="gap-2 bg-white text-blue-700 hover:bg-white/90"
-            onClick={() => window.print()}
-          >
-            <FileText className="h-4 w-4" />
-            Export Guide as PDF
-          </Button>
-          <Button
-            variant="outline"
-            className="gap-2 border-white/30 bg-transparent text-white hover:bg-white/10"
-          >
-            <Download className="h-4 w-4" />
-            Download All Code
-          </Button>
-        </div>
-      </div>
+      <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
+        <CardHeader>
+          <CardTitle className="text-green-600">Congratulations!</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-muted-foreground">
+            You have completed the ACC Semantic Layer Guide. Your semantic layer is now ready to provide intelligent insights from your construction data.
+          </p>
+          <div className="flex gap-3">
+            <Button variant="outline" className="gap-2">
+              <Download className="w-4 h-4" />
+              Download Code
+            </Button>
+            <Button variant="outline" className="gap-2">
+              <FileText className="w-4 h-4" />
+              Export as PDF
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-      <StepNavigation onBack={onBack} showNext={false} />
+      <StepNavigation
+        onPrevious={onPrevious}
+        isFirst={isFirst}
+        isLast={isLast}
+      />
     </div>
   )
 }

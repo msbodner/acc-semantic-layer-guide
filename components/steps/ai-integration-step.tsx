@@ -5,110 +5,90 @@ import { StepNavigation } from "../step-navigation"
 import { CodeBlock } from "../code-block"
 import { AI_PLATFORMS, AZURE_OPENAI_SETUP } from "../../lib/data"
 import { cn } from "../../lib/utils"
-import { Check, Minus } from "lucide-react"
+import { Brain, Sparkles, Zap } from "lucide-react"
 
 interface AIIntegrationStepProps {
-  onBack: () => void
   onNext: () => void
+  onPrevious: () => void
+  isFirst: boolean
+  isLast: boolean
 }
 
-export function AIIntegrationStep({ onBack, onNext }: AIIntegrationStepProps) {
+export function AIIntegrationStep({ onNext, onPrevious, isFirst, isLast }: AIIntegrationStepProps) {
   return (
-    <div className="animate-fade-in">
-      <h2 className="text-3xl font-bold tracking-tight text-foreground">
-        AI Platform Integration
-      </h2>
-      <p className="mt-2 text-muted-foreground">
-        Connect your semantic layer to AI services for natural language capabilities.
-      </p>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">AI Integration</h1>
+        <p className="mt-2 text-lg text-muted-foreground">
+          Integrate Azure OpenAI to enable natural language queries on your semantic model.
+        </p>
+      </div>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
-        {Object.entries(AI_PLATFORMS).map(([key, platform]) => (
-          <Card key={key} className="flex flex-col">
+      <div className="grid gap-4 md:grid-cols-3">
+        {AI_PLATFORMS.map((platform) => (
+          <Card key={platform.name} className={cn(platform.recommended && "border-primary")}>
+            {platform.recommended && (
+              <div className="px-3 py-1 text-xs font-medium text-primary-foreground bg-primary rounded-t-lg text-center">
+                Recommended
+              </div>
+            )}
             <CardHeader>
-              <div className="flex items-start justify-between">
-                <CardTitle className="text-lg">{platform.name}</CardTitle>
-                <span
-                  className={cn(
-                    "rounded-full px-2 py-0.5 text-xs font-semibold",
-                    platform.integration_level === "Native"
-                      ? "bg-emerald-100 text-emerald-800"
-                      : "bg-sky-100 text-sky-800"
-                  )}
-                >
-                  {platform.integration_level}
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground">{platform.description}</p>
+              <CardTitle className="flex items-center gap-2">
+                {platform.name === "Azure OpenAI" && <Brain className="w-5 h-5 text-primary" />}
+                {platform.name === "Azure AI Foundry" && <Sparkles className="w-5 h-5 text-primary" />}
+                {platform.name === "Fabric Copilot" && <Zap className="w-5 h-5 text-primary" />}
+                {platform.name}
+              </CardTitle>
             </CardHeader>
-            <CardContent className="flex-1 space-y-4">
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">{platform.description}</p>
               <div>
-                <h5 className="text-sm font-semibold text-emerald-600">Advantages</h5>
-                <ul className="mt-2 space-y-1">
-                  {platform.pros.map((pro, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
-                      <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
-                      <span className="text-muted-foreground">{pro}</span>
+                <h4 className="text-sm font-medium text-foreground mb-2">Best For:</h4>
+                <ul className="space-y-1">
+                  {platform.useCases.map((useCase) => (
+                    <li key={useCase} className="text-xs text-muted-foreground flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-primary" />
+                      {useCase}
                     </li>
                   ))}
                 </ul>
               </div>
-              <div>
-                <h5 className="text-sm font-semibold text-red-600">Considerations</h5>
-                <ul className="mt-2 space-y-1">
-                  {platform.cons.map((con, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
-                      <Minus className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
-                      <span className="text-muted-foreground">{con}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <p className="text-sm">
-                <strong>Best for:</strong>{" "}
-                <span className="text-muted-foreground">{platform.best_for}</span>
-              </p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Card className="mt-8 border-l-4 border-l-emerald-500 bg-emerald-50/50">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-emerald-700">Recommendation</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <h4 className="font-semibold">Azure OpenAI + Fabric Copilot</h4>
-          <p className="mt-2 text-muted-foreground">
-            Based on your goals, we recommend using both Fabric Copilot for built-in natural language
-            to DAX in Power BI, and Azure OpenAI for custom NL query APIs.
+          <CardTitle>Azure OpenAI Setup</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Follow these steps to configure Azure OpenAI for your semantic layer
           </p>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {AZURE_OPENAI_SETUP.map((step, index) => (
+            <div key={step.title} className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm font-medium">
+                  {index + 1}
+                </div>
+                <h4 className="font-medium text-foreground">{step.title}</h4>
+              </div>
+              <p className="text-sm text-muted-foreground ml-9">{step.description}</p>
+              <div className="ml-9">
+                <CodeBlock code={step.code} title={step.title} />
+              </div>
+            </div>
+          ))}
         </CardContent>
       </Card>
 
-      <div className="mt-8">
-        <h3 className="text-xl font-semibold">Azure OpenAI Setup</h3>
-        <div className="mt-4 space-y-6">
-          {AZURE_OPENAI_SETUP.map((item) => (
-            <Card key={item.step} className="overflow-hidden">
-              <CardHeader className="flex flex-row items-center gap-4 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 font-semibold">
-                  {item.step}
-                </span>
-                <div>
-                  <CardTitle className="text-white">{item.title}</CardTitle>
-                  <p className="mt-1 text-sm text-white/80">{item.description}</p>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <CodeBlock code={item.code} />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      <StepNavigation onBack={onBack} onNext={onNext} />
+      <StepNavigation
+        onNext={onNext}
+        onPrevious={onPrevious}
+        isFirst={isFirst}
+        isLast={isLast}
+      />
     </div>
   )
 }

@@ -1,39 +1,39 @@
 "use client"
 
 import { Button } from "./ui/button"
-import { ArrowLeft, ArrowRight } from "lucide-react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 interface StepNavigationProps {
-  onBack?: () => void
   onNext?: () => void
-  backLabel?: string
+  onPrevious?: () => void
+  isFirst?: boolean
+  isLast?: boolean
   nextLabel?: string
-  showBack?: boolean
-  showNext?: boolean
+  previousLabel?: string
 }
 
 export function StepNavigation({
-  onBack,
   onNext,
-  backLabel = "Back",
+  onPrevious,
+  isFirst = false,
+  isLast = false,
   nextLabel = "Continue",
-  showBack = true,
-  showNext = true,
+  previousLabel = "Back",
 }: StepNavigationProps) {
   return (
-    <div className="mt-10 flex items-center justify-between border-t pt-6">
-      {showBack && onBack ? (
-        <Button variant="outline" onClick={onBack} className="gap-2">
-          <ArrowLeft className="h-4 w-4" />
-          {backLabel}
+    <div className="flex items-center justify-between pt-8 mt-8 border-t border-border">
+      {!isFirst ? (
+        <Button variant="outline" onClick={onPrevious}>
+          <ChevronLeft className="w-4 h-4 mr-2" />
+          {previousLabel}
         </Button>
       ) : (
         <div />
       )}
-      {showNext && onNext && (
-        <Button onClick={onNext} className="gap-2">
+      {!isLast && (
+        <Button onClick={onNext}>
           {nextLabel}
-          <ArrowRight className="h-4 w-4" />
+          <ChevronRight className="w-4 h-4 ml-2" />
         </Button>
       )}
     </div>

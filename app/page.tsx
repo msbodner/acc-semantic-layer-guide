@@ -13,46 +13,28 @@ import { STEPS, type StepId } from "../lib/data"
 
 export default function Home() {
   const [currentStep, setCurrentStep] = useState<StepId>("overview")
-  const [completedSteps, setCompletedSteps] = useState<StepId[]>([])
-  const [selectedSchemas, setSelectedSchemas] = useState<string[]>(["projects", "issues"])
-  const [selectedTemplate, setSelectedTemplate] = useState("comprehensive")
 
-  const navigateToStep = useCallback((stepId: StepId) => {
-    setCompletedSteps((prev) => {
-      if (!prev.includes(currentStep)) {
-        return [...prev, currentStep]
-      }
-      return prev
-    })
+  const handleStepChange = useCallback((stepId: StepId) => {
     setCurrentStep(stepId)
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }, [currentStep])
+  }, [])
 
-  const getNextStep = (): StepId | null => {
+  const handleNext = useCallback(() => {
     const currentIndex = STEPS.findIndex((s) => s.id === currentStep)
     if (currentIndex < STEPS.length - 1) {
-      return STEPS[currentIndex + 1].id
+      setCurrentStep(STEPS[currentIndex + 1].id)
     }
-    return null
-  }
+  }, [currentStep])
 
-  const getPrevStep = (): StepId | null => {
+  const handlePrevious = useCallback(() => {
     const currentIndex = STEPS.findIndex((s) => s.id === currentStep)
     if (currentIndex > 0) {
-      return STEPS[currentIndex - 1].id
+      setCurrentStep(STEPS[currentIndex - 1].id)
     }
-    return null
-  }
+  }, [currentStep])
 
-  const handleNext = () => {
-    const next = getNextStep()
-    if (next) navigateToStep(next)
-  }
-
-  const handleBack = () => {
-    const prev = getPrevStep()
-    if (prev) navigateToStep(prev)
-  }
+  const currentIndex = STEPS.findIndex((s) => s.id === currentStep)
+  const isFirst = currentIndex === 0
+  const isLast = currentIndex === STEPS.length - 1
 
   const renderStep = () => {
     switch (currentStep) {
@@ -61,30 +43,56 @@ export default function Home() {
       case "acc-data":
         return (
           <AccDataStep
-            onBack={handleBack}
             onNext={handleNext}
-            selectedSchemas={selectedSchemas}
-            onSchemasChange={setSelectedSchemas}
+            onPrevious={handlePrevious}
+            isFirst={isFirst}
+            isLast={isLast}
           />
         )
       case "fabric-setup":
-        return <FabricSetupStep onBack={handleBack} onNext={handleNext} />
+        return (
+          <FabricSetupStep
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            isFirst={isFirst}
+            isLast={isLast}
+          />
+        )
       case "semantic-model":
         return (
           <SemanticModelStep
-            onBack={handleBack}
             onNext={handleNext}
-            selectedSchemas={selectedSchemas}
-            selectedTemplate={selectedTemplate}
-            onTemplateChange={setSelectedTemplate}
+            onPrevious={handlePrevious}
+            isFirst={isFirst}
+            isLast={isLast}
           />
         )
       case "ai-integration":
-        return <AIIntegrationStep onBack={handleBack} onNext={handleNext} />
+        return (
+          <AIIntegrationStep
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            isFirst={isFirst}
+            isLast={isLast}
+          />
+        )
       case "nl-queries":
-        return <NLQueriesStep onBack={handleBack} onNext={handleNext} />
+        return (
+          <NLQueriesStep
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            isFirst={isFirst}
+            isLast={isLast}
+          />
+        )
       case "deployment":
-        return <DeploymentStep onBack={handleBack} />
+        return (
+          <DeploymentStep
+            onPrevious={handlePrevious}
+            isFirst={isFirst}
+            isLast={isLast}
+          />
+        )
       default:
         return <OverviewStep onNext={handleNext} />
     }
@@ -92,13 +100,11 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar
-        currentStep={currentStep}
-        completedSteps={completedSteps}
-        onStepClick={navigateToStep}
-      />
-      <main className="ml-72 flex-1 p-8 lg:p-12">
-        <div className="mx-auto max-w-4xl">{renderStep()}</div>
+      <Sidebar currentStep={currentStep} onStepChange={handleStepChange} />
+      <main className="flex-1 overflow-auto">
+        <div className="container mx-auto max-w-5xl px-6 py-8">
+          {renderStep()}
+        </div>
       </main>
     </div>
   )

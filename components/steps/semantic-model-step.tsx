@@ -9,150 +9,125 @@ import { FABRIC_TEMPLATES, generateDaxCode, generateTmdl } from "../../lib/data"
 import { cn } from "../../lib/utils"
 
 interface SemanticModelStepProps {
-  onBack: () => void
   onNext: () => void
-  selectedSchemas: string[]
-  selectedTemplate: string
-  onTemplateChange: (template: string) => void
+  onPrevious: () => void
+  isFirst: boolean
+  isLast: boolean
 }
 
-const relationships = [
-  { from: "dim_project[project_id]", to: "fact_issues[project_id]", type: "1:*" },
-  { from: "dim_project[project_id]", to: "fact_rfis[project_id]", type: "1:*" },
-  { from: "dim_project[project_id]", to: "dim_budget[project_id]", type: "1:*" },
-  { from: "dim_project[project_id]", to: "fact_contracts[project_id]", type: "1:*" },
-  { from: "fact_contracts[contract_id]", to: "fact_change_orders[contract_id]", type: "1:*" },
-  { from: "dim_project[project_id]", to: "fact_documents[project_id]", type: "1:*" },
-  { from: "dim_folders[folder_id]", to: "fact_documents[folder_id]", type: "1:*" },
-]
-
-export function SemanticModelStep({
-  onBack,
-  onNext,
-  selectedSchemas,
-  selectedTemplate,
-  onTemplateChange,
-}: SemanticModelStepProps) {
-  const [activeTab, setActiveTab] = useState("measures")
-
-  const daxCode = selectedSchemas.length > 0 
-    ? generateDaxCode(selectedSchemas) 
-    : `// Select schemas in Step 2 to generate DAX measures
-
-// Example measures:
-Project Count = COUNTROWS(dim_project)
-
-Active Projects =
-CALCULATE(
-    COUNTROWS(dim_project),
-    dim_project[status] = "Active"
-)
-
-Total Issues = COUNTROWS(fact_issues)
-
-Open Issues =
-CALCULATE(
-    COUNTROWS(fact_issues),
-    fact_issues[status] <> "Closed"
-)`
-
-  const tmdlCode = selectedSchemas.length > 0 
-    ? generateTmdl(selectedSchemas)
-    : `// TMDL (Tabular Model Definition Language)
-model ACC_Semantic_Model
-    culture: en-US
-    defaultPowerBIDataSourceVersion: powerBI_V3
-
-    table dim_project
-        description: Project dimension table
-        column project_id
-            dataType: string
-            isKey: true`
+export function SemanticModelStep({ onNext, onPrevious, isFirst, isLast }: SemanticModelStepProps) {
+  const [selectedTemplate, setSelectedTemplate] = useState(FABRIC_TEMPLATES[0])
 
   return (
-    <div className="animate-fade-in">
-      <h2 className="text-3xl font-bold tracking-tight text-foreground">Build Semantic Model</h2>
-      <p className="mt-2 text-muted-foreground">
-        Create a Power BI / Fabric semantic model with business-friendly metrics and relationships.
-      </p>
-
-      <div className="mt-8">
-        <h3 className="text-lg font-semibold">Choose a Template</h3>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {Object.entries(FABRIC_TEMPLATES).map(([key, template]) => (
-            <button
-              key={key}
-              onClick={() => onTemplateChange(key)}
-              className={cn(
-                "rounded-lg border-2 p-4 text-left transition-all hover:border-primary/50",
-                selectedTemplate === key
-                  ? "border-primary bg-primary/5"
-                  : "border-border bg-card"
-              )}
-            >
-              <h4 className="font-semibold">{template.name}</h4>
-              <span
-                className={cn(
-                  "mt-2 inline-block rounded-full px-2 py-0.5 text-xs font-semibold",
-                  template.complexity === "Low" && "bg-emerald-100 text-emerald-800",
-                  template.complexity === "Medium" && "bg-amber-100 text-amber-800",
-                  template.complexity === "High" && "bg-red-100 text-red-800"
-                )}
-              >
-                {template.complexity}
-              </span>
-              <p className="mt-2 text-sm text-muted-foreground">{template.description}</p>
-            </button>
-          ))}
-        </div>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Build Semantic Model</h1>
+        <p className="mt-2 text-lg text-muted-foreground">
+          Create DAX measures and define your semantic model structure for ACC data analysis.
+        </p>
       </div>
 
-      <Card className="mt-8">
+      <Card>
         <CardHeader>
-          <CardTitle>Generated Model Configuration</CardTitle>
+          <CardTitle>Select Model Template</CardTitle>
+          <p className="text-sm text-muted-foreground">Choose a template based on your analysis needs</p>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList>
-              <TabsTrigger value="measures">Measures (DAX)</TabsTrigger>
-              <TabsTrigger value="relationships">Relationships</TabsTrigger>
-              <TabsTrigger value="tmdl">TMDL Export</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="measures" className="mt-4">
-              <CodeBlock code={daxCode} language="DAX" />
-            </TabsContent>
-
-            <TabsContent value="relationships" className="mt-4">
-              <div className="rounded-lg bg-muted/50 p-4">
-                <h4 className="font-semibold">Star Schema Relationships</h4>
-                <div className="mt-4 space-y-3">
-                  {relationships.map((rel, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-wrap items-center gap-3 rounded-md bg-background p-3"
-                    >
-                      <code className="rounded bg-[hsl(var(--sidebar-bg))] px-2 py-1 text-xs text-sky-400">
-                        {rel.from}
-                      </code>
-                      <span className="font-semibold text-orange-500">{rel.type}</span>
-                      <code className="rounded bg-[hsl(var(--sidebar-bg))] px-2 py-1 text-xs text-sky-400">
-                        {rel.to}
-                      </code>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="tmdl" className="mt-4">
-              <CodeBlock code={tmdlCode} language="TMDL" />
-            </TabsContent>
-          </Tabs>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            {FABRIC_TEMPLATES.map((template) => (
+              <button
+                key={template.id}
+                onClick={() => setSelectedTemplate(template)}
+                className={cn(
+                  "p-4 rounded-lg border text-left transition-all",
+                  selectedTemplate.id === template.id
+                    ? "border-primary bg-primary/10"
+                    : "border-border hover:border-primary/50"
+                )}
+              >
+                <h4 className="font-medium text-foreground">{template.name}</h4>
+                <p className="text-xs text-muted-foreground mt-1">{template.description}</p>
+              </button>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
-      <StepNavigation onBack={onBack} onNext={onNext} />
+      <Tabs defaultValue="dax" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="dax">DAX Measures</TabsTrigger>
+          <TabsTrigger value="tmdl">TMDL Definition</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dax">
+          <Card>
+            <CardHeader>
+              <CardTitle>DAX Measures for {selectedTemplate.name}</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Copy these measures into your Power BI semantic model
+              </p>
+            </CardHeader>
+            <CardContent>
+              <CodeBlock
+                code={generateDaxCode(selectedTemplate.id)}
+                language="dax"
+                title="DAX Measures"
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="tmdl">
+          <Card>
+            <CardHeader>
+              <CardTitle>TMDL Model Definition</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Use TMDL for source control and CI/CD deployment
+              </p>
+            </CardHeader>
+            <CardContent>
+              <CodeBlock
+                code={generateTmdl(selectedTemplate.id)}
+                language="yaml"
+                title="model.tmdl"
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Best Practices</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2 text-sm">
+            <li className="flex items-start gap-2">
+              <span className="text-primary font-bold">1.</span>
+              <span className="text-muted-foreground">Use calculation groups for time intelligence to reduce measure count</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary font-bold">2.</span>
+              <span className="text-muted-foreground">Create a date dimension table with fiscal calendar support</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary font-bold">3.</span>
+              <span className="text-muted-foreground">Implement incremental refresh for large fact tables</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary font-bold">4.</span>
+              <span className="text-muted-foreground">Use TMDL for version control and automated deployments</span>
+            </li>
+          </ul>
+        </CardContent>
+      </Card>
+
+      <StepNavigation
+        onNext={onNext}
+        onPrevious={onPrevious}
+        isFirst={isFirst}
+        isLast={isLast}
+      />
     </div>
   )
 }

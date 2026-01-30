@@ -3,204 +3,143 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { StepNavigation } from "../step-navigation"
 import { CodeBlock } from "../code-block"
+import { Cloud, Database, Workflow, Shield } from "lucide-react"
 
 interface FabricSetupStepProps {
-  onBack: () => void
   onNext: () => void
+  onPrevious: () => void
+  isFirst: boolean
+  isLast: boolean
 }
 
-const setupSteps = [
-  {
-    step: 1,
-    title: "Create Fabric Workspace",
-    content: (
-      <>
-        <p className="text-muted-foreground">Create a dedicated workspace for your ACC analytics:</p>
-        <ol className="mt-3 list-inside list-decimal space-y-2 text-sm text-foreground">
-          <li>
-            Go to <strong>app.fabric.microsoft.com</strong>
-          </li>
-          <li>
-            Click <strong>Workspaces</strong> then <strong>New workspace</strong>
-          </li>
-          <li>
-            Name it <code className="rounded bg-muted px-1.5 py-0.5 text-xs">ACC-Analytics</code>
-          </li>
-          <li>
-            Select <strong>Fabric capacity</strong> (F2 or higher recommended)
-          </li>
-          <li>
-            Enable <strong>OneLake data access</strong>
-          </li>
-        </ol>
-      </>
-    ),
+export function FabricSetupStep({ onNext, onPrevious, isFirst, isLast }: FabricSetupStepProps) {
+  const setupSteps = [
+    {
+      icon: Cloud,
+      title: "Create Fabric Workspace",
+      description: "Set up a dedicated workspace for your ACC semantic layer project.",
+      code: `// Navigate to Microsoft Fabric portal
+// 1. Go to app.fabric.microsoft.com
+// 2. Click "Workspaces" in the left navigation
+// 3. Select "New workspace"
+// 4. Name it "ACC-Semantic-Layer"
+// 5. Choose Premium capacity`,
+    },
+    {
+      icon: Database,
+      title: "Create Lakehouse",
+      description: "Set up a Lakehouse to store your ACC data in Delta format.",
+      code: `// In your workspace:
+// 1. Click "New" > "Lakehouse"
+// 2. Name it "acc_lakehouse"
+// 3. This creates:
+//    - Files section for raw data
+//    - Tables section for Delta tables
+//    - SQL endpoint for querying`,
+    },
+    {
+      icon: Workflow,
+      title: "Configure Data Pipeline",
+      description: "Create a pipeline to ingest data from ACC APIs.",
+      code: `// Create a new Data Pipeline
+// 1. Click "New" > "Data Pipeline"
+// 2. Add a "Copy Data" activity
+// 3. Configure source as REST API:
+{
+  "source": {
+    "type": "RestSource",
+    "httpRequestTimeout": "00:01:40",
+    "requestMethod": "GET",
+    "additionalHeaders": {
+      "Authorization": "Bearer {access_token}"
+    }
   },
-  {
-    step: 2,
-    title: "Create Lakehouse",
-    content: (
-      <>
-        <p className="text-muted-foreground">Set up the lakehouse for raw and curated ACC data:</p>
-        <ol className="mt-3 list-inside list-decimal space-y-2 text-sm text-foreground">
-          <li>
-            In your workspace, click <strong>+ New</strong> then <strong>Lakehouse</strong>
-          </li>
-          <li>
-            Name it <code className="rounded bg-muted px-1.5 py-0.5 text-xs">ACC_Lakehouse</code>
-          </li>
-          <li>
-            Create folders:{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 text-xs">raw/</code>,{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 text-xs">curated/</code>,{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 text-xs">semantic/</code>
-          </li>
-        </ol>
-        <CodeBlock
-          className="mt-4"
-          code={`# Recommended folder structure
-ACC_Lakehouse/
-  Tables/
-    raw_projects
-    raw_issues
-    raw_rfis
-    raw_contracts
-    raw_change_orders
-    raw_documents
-  Files/
-    raw/           # Landing zone for API data
-    curated/       # Cleaned and transformed
-    semantic/      # Model artifacts`}
-        />
-      </>
-    ),
-  },
-  {
-    step: 3,
-    title: "Configure ACC Data Ingestion",
-    content: (
-      <>
-        <p className="text-muted-foreground">
-          Create a Data Pipeline to pull data from ACC APIs:
-        </p>
-        <CodeBlock
-          className="mt-4"
-          language="Python"
-          code={`# Python notebook for ACC API ingestion
-import requests
-import json
-from pyspark.sql import SparkSession
+  "sink": {
+    "type": "LakehouseSink",
+    "tableActionOption": "Append"
+  }
+}`,
+    },
+    {
+      icon: Shield,
+      title: "Set Up Security",
+      description: "Configure authentication and access control.",
+      code: `// Configure Azure AD authentication
+// 1. Register an app in Azure AD
+// 2. Grant ACC API permissions
+// 3. Create a Key Vault for secrets
+// 4. Configure managed identity
 
-# ACC API Configuration
-ACC_BASE_URL = "https://developer.api.autodesk.com"
-ACC_TOKEN = dbutils.secrets.get("acc-secrets", "api-token")
+// In Fabric workspace settings:
+// - Set workspace access roles
+// - Configure row-level security
+// - Enable audit logging`,
+    },
+  ]
 
-def get_acc_projects():
-    """Fetch all projects from ACC"""
-    headers = {"Authorization": f"Bearer {ACC_TOKEN}"}
-    response = requests.get(
-        f"{ACC_BASE_URL}/construction/admin/v1/projects",
-        headers=headers
-    )
-    return response.json()
-
-def get_acc_issues(project_id):
-    """Fetch issues for a project"""
-    headers = {"Authorization": f"Bearer {ACC_TOKEN}"}
-    response = requests.get(
-        f"{ACC_BASE_URL}/issues/v1/containers/{project_id}/issues",
-        headers=headers
-    )
-    return response.json()
-
-# Load to Delta tables
-projects_df = spark.createDataFrame(get_acc_projects()['results'])
-projects_df.write.mode("overwrite").saveAsTable("raw_projects")`}
-        />
-      </>
-    ),
-  },
-  {
-    step: 4,
-    title: "Data Transformation",
-    content: (
-      <>
-        <p className="text-muted-foreground">
-          Transform raw data into dimensional model using Fabric notebooks:
-        </p>
-        <CodeBlock
-          className="mt-4"
-          language="Python"
-          code={`# Create dimension and fact tables
-from pyspark.sql import functions as F
-
-# Dimension: Projects
-dim_project = spark.sql("""
-    SELECT
-        id as project_id,
-        name as project_name,
-        type as project_type,
-        status,
-        startDate as start_date,
-        endDate as end_date,
-        address_line_1 as address,
-        latitude,
-        longitude,
-        created_at,
-        updated_at
-    FROM raw_projects
-""")
-dim_project.write.mode("overwrite").saveAsTable("dim_project")
-
-# Fact: Issues
-fact_issues = spark.sql("""
-    SELECT
-        id as issue_id,
-        containerId as project_id,
-        title,
-        description,
-        issueType as issue_type,
-        status,
-        priority,
-        assignedTo as assigned_to,
-        dueDate as due_date,
-        createdAt as created_date,
-        closedAt as closed_date,
-        DATEDIFF(COALESCE(closedAt, current_date()), createdAt) as days_open
-    FROM raw_issues
-""")
-fact_issues.write.mode("overwrite").saveAsTable("fact_issues")`}
-        />
-      </>
-    ),
-  },
-]
-
-export function FabricSetupStep({ onBack, onNext }: FabricSetupStepProps) {
   return (
-    <div className="animate-fade-in">
-      <h2 className="text-3xl font-bold tracking-tight text-foreground">
-        Microsoft Fabric Setup
-      </h2>
-      <p className="mt-2 text-muted-foreground">
-        Configure your Fabric workspace to receive and process ACC data.
-      </p>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Microsoft Fabric Setup</h1>
+        <p className="mt-2 text-lg text-muted-foreground">
+          Configure your Microsoft Fabric environment to ingest and store ACC data.
+        </p>
+      </div>
 
-      <div className="mt-8 space-y-6">
-        {setupSteps.map((item) => (
-          <Card key={item.step} className="overflow-hidden">
-            <CardHeader className="flex flex-row items-center gap-4 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 font-semibold">
-                {item.step}
-              </span>
-              <CardTitle className="text-white">{item.title}</CardTitle>
+      <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
+        <CardHeader>
+          <CardTitle>Prerequisites</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2 text-sm">
+            <li className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-primary" />
+              <span className="text-muted-foreground">Microsoft Fabric capacity (Premium or Trial)</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-primary" />
+              <span className="text-muted-foreground">Azure Active Directory tenant</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-primary" />
+              <span className="text-muted-foreground">ACC account with API access</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-primary" />
+              <span className="text-muted-foreground">Contributor role in Azure subscription</span>
+            </li>
+          </ul>
+        </CardContent>
+      </Card>
+
+      <div className="space-y-6">
+        {setupSteps.map((step, index) => (
+          <Card key={step.title}>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-medium">
+                  {index + 1}
+                </div>
+                <div className="flex items-center gap-2">
+                  <step.icon className="w-5 h-5 text-primary" />
+                  <CardTitle className="text-lg">{step.title}</CardTitle>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground ml-11">{step.description}</p>
             </CardHeader>
-            <CardContent className="pt-4">{item.content}</CardContent>
+            <CardContent>
+              <CodeBlock code={step.code} title={step.title} />
+            </CardContent>
           </Card>
         ))}
       </div>
 
-      <StepNavigation onBack={onBack} onNext={onNext} />
+      <StepNavigation
+        onNext={onNext}
+        onPrevious={onPrevious}
+        isFirst={isFirst}
+        isLast={isLast}
+      />
     </div>
   )
 }

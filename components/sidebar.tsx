@@ -6,68 +6,63 @@ import { Check } from "lucide-react"
 
 interface SidebarProps {
   currentStep: StepId
-  completedSteps: StepId[]
-  onStepClick: (step: StepId) => void
+  onStepChange: (stepId: StepId) => void
 }
 
-export function Sidebar({ currentStep, completedSteps, onStepClick }: SidebarProps) {
+export function Sidebar({ currentStep, onStepChange }: SidebarProps) {
   const currentIndex = STEPS.findIndex((s) => s.id === currentStep)
-  const progress = ((currentIndex + 1) / STEPS.length) * 100
 
   return (
-    <nav className="fixed left-0 top-0 z-50 flex h-screen w-72 flex-col bg-[hsl(var(--sidebar-bg))] text-[hsl(var(--sidebar-foreground))]">
-      <div className="px-6 py-6">
-        <h1 className="text-xl font-bold tracking-tight">ACC Semantic Layer</h1>
-        <p className="mt-1 text-sm text-sky-400">Build Guide</p>
+    <aside className="w-72 border-r border-border bg-card flex flex-col">
+      <div className="p-6 border-b border-border">
+        <h1 className="text-xl font-bold text-foreground">ACC Semantic Layer</h1>
+        <p className="text-sm text-muted-foreground mt-1">Build Guide</p>
       </div>
+      <nav className="flex-1 p-4">
+        <ul className="space-y-1">
+          {STEPS.map((step, index) => {
+            const isActive = step.id === currentStep
+            const isCompleted = index < currentIndex
 
-      <ul className="mt-2 flex-1 space-y-1 px-4">
-        {STEPS.map((step) => {
-          const isActive = currentStep === step.id
-          const isCompleted = completedSteps.includes(step.id)
-
-          return (
-            <li key={step.id}>
-              <button
-                onClick={() => onStepClick(step.id)}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition-all",
-                  isActive
-                    ? "bg-[hsl(var(--primary))] text-white"
-                    : "text-white/70 hover:bg-white/10 hover:text-white",
-                  isCompleted && !isActive && "text-white/90"
-                )}
-              >
-                <span
+            return (
+              <li key={step.id}>
+                <button
+                  onClick={() => onStepChange(step.id)}
                   className={cn(
-                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold",
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors",
                     isActive
-                      ? "bg-white/20"
-                      : isCompleted
-                        ? "bg-[hsl(var(--success))]"
-                        : "bg-white/20"
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  {isCompleted && !isActive ? <Check className="h-4 w-4" /> : step.number}
-                </span>
-                <span className="text-sm font-medium">{step.name}</span>
-              </button>
-            </li>
-          )
-        })}
-      </ul>
-
-      <div className="px-6 pb-6">
-        <div className="h-1 overflow-hidden rounded-full bg-white/10">
-          <div
-            className="h-full bg-sky-400 transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <p className="mt-2 text-xs text-white/60">
+                  <span
+                    className={cn(
+                      "flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium",
+                      isActive
+                        ? "bg-primary-foreground text-primary"
+                        : isCompleted
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted-foreground/20 text-muted-foreground"
+                    )}
+                  >
+                    {isCompleted ? (
+                      <Check className="w-3.5 h-3.5" />
+                    ) : (
+                      step.number
+                    )}
+                  </span>
+                  <span className="text-sm font-medium">{step.name}</span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      </nav>
+      <div className="p-4 border-t border-border">
+        <p className="text-xs text-muted-foreground">
           Step {currentIndex + 1} of {STEPS.length}
         </p>
       </div>
-    </nav>
+    </aside>
   )
 }
