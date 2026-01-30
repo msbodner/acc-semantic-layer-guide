@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACC Semantic Layer Guide</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>ACC Semantic Layer</h1>
+                <p>Build Guide</p>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item active" data-step="overview">
+                    <span class="step-number">1</span>
+                    <span class="step-name">Overview</span>
+                </li>
+                <li class="nav-item" data-step="acc-data">
+                    <span class="step-number">2</span>
+                    <span class="step-name">ACC Data Schemas</span>
+                </li>
+                <li class="nav-item" data-step="fabric-setup">
+                    <span class="step-number">3</span>
+                    <span class="step-name">Fabric Setup</span>
+                </li>
+                <li class="nav-item" data-step="semantic-model">
+                    <span class="step-number">4</span>
+                    <span class="step-name">Semantic Model</span>
+                </li>
+                <li class="nav-item" data-step="ai-integration">
+                    <span class="step-number">5</span>
+                    <span class="step-name">AI Integration</span>
+                </li>
+                <li class="nav-item" data-step="nl-queries">
+                    <span class="step-number">6</span>
+                    <span class="step-name">Natural Language</span>
+                </li>
+                <li class="nav-item" data-step="deployment">
+                    <span class="step-number">7</span>
+                    <span class="step-name">Deployment</span>
+                </li>
+            </ul>
+            <div class="progress-indicator">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content">
+            <!-- Step 1: Overview -->
+            <section class="step-content active" id="overview">
+                <h2>Building a Semantic Layer for ACC Data</h2>
+                <div class="intro-card">
+                    <h3>What You'll Build</h3>
+                    <p>A complete semantic layer that transforms your Autodesk Construction Cloud (ACC) data into business-friendly metrics and enables natural language querying through Azure OpenAI.</p>
+                </div>
+
+                <div class="architecture-diagram">
+                    <h3>Architecture Overview</h3>
+                    <div class="diagram">
+                        <div class="layer" id="source-layer">
+                            <h4>Data Source</h4>
+                            <div class="component">Autodesk Construction Cloud</div>
+                            <div class="sub-components">
+                                <span>Projects</span>
+                                <span>Issues</span>
+                                <span>Cost</span>
+                                <span>Docs</span>
+                            </div>
+                        </div>
+                        <div class="arrow">&#8595;</div>
+                        <div class="layer" id="ingestion-layer">
+                            <h4>Data Ingestion</h4>
+                            <div class="component">Microsoft Fabric Lakehouse</div>
+                            <div class="sub-components">
+                                <span>Delta Tables</span>
+                                <span>Dataflows</span>
+                            </div>
+                        </div>
+                        <div class="arrow">&#8595;</div>
+                        <div class="layer" id="semantic-layer">
+                            <h4>Semantic Layer</h4>
+                            <div class="component">Fabric Semantic Model</div>
+                            <div class="sub-components">
+                                <span>Dimensions</span>
+                                <span>Facts</span>
+                                <span>Measures</span>
+                            </div>
+                        </div>
+                        <div class="arrow">&#8595;</div>
+                        <div class="layer" id="ai-layer">
+                            <h4>AI Layer</h4>
+                            <div class="component">Azure OpenAI</div>
+                            <div class="sub-components">
+                                <span>GPT-4</span>
+                                <span>Embeddings</span>
+                            </div>
+                        </div>
+                        <div class="arrow">&#8595;</div>
+                        <div class="layer" id="consumption-layer">
+                            <h4>Consumption</h4>
+                            <div class="component">End Users</div>
+                            <div class="sub-components">
+                                <span>Power BI</span>
+                                <span>NL Queries</span>
+                                <span>APIs</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <h4>Business-Friendly</h4>
+                        <p>Transform technical ACC data into metrics like "Budget Variance" and "Issue Resolution Time"</p>
+                    </div>
+                    <div class="benefit-card">
+                        <h4>Natural Language</h4>
+                        <p>Ask questions like "What projects are over budget?" and get instant answers</p>
+                    </div>
+                    <div class="benefit-card">
+                        <h4>Single Source of Truth</h4>
+                        <p>Consistent definitions across all reports and applications</p>
+                    </div>
+                    <div class="benefit-card">
+                        <h4>Self-Service</h4>
+                        <p>Enable business users to explore data without SQL knowledge</p>
+                    </div>
+                </div>
+
+                <button class="next-btn" onclick="navigateToStep('acc-data')">Get Started &rarr;</button>
+            </section>
+
+            <!-- Step 2: ACC Data Schemas -->
+            <section class="step-content" id="acc-data">
+                <h2>ACC Data Schemas</h2>
+                <p class="step-intro">Select the ACC modules you want to include in your semantic layer. Each module includes pre-defined tables, columns, and suggested measures.</p>
+
+                <div class="schema-selector" id="schemaSelector">
+                    <!-- Populated by JavaScript -->
+                </div>
+
+                <div class="schema-details" id="schemaDetails">
+                    <h3>Select a schema to view details</h3>
+                </div>
+
+                <div class="nav-buttons">
+                    <button class="back-btn" onclick="navigateToStep('overview')">&larr; Back</button>
+                    <button class="next-btn" onclick="navigateToStep('fabric-setup')">Continue &rarr;</button>
+                </div>
+            </section>
+
+            <!-- Step 3: Fabric Setup -->
+            <section class="step-content" id="fabric-setup">
+                <h2>Microsoft Fabric Setup</h2>
+                <p class="step-intro">Configure your Fabric workspace to receive and process ACC data.</p>
+
+                <div class="setup-steps">
+                    <div class="setup-step">
+                        <div class="step-header">
+                            <span class="step-icon">1</span>
+                            <h3>Create Fabric Workspace</h3>
+                        </div>
+                        <div class="step-body">
+                            <p>Create a dedicated workspace for your ACC analytics:</p>
+                            <ol>
+                                <li>Go to <strong>app.fabric.microsoft.com</strong></li>
+                                <li>Click <strong>Workspaces</strong> &rarr; <strong>New workspace</strong></li>
+                                <li>Name it <code>ACC-Analytics</code></li>
+                                <li>Select <strong>Fabric capacity</strong> (F2 or higher recommended)</li>
+                                <li>Enable <strong>OneLake data access</strong></li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="setup-step">
+                        <div class="step-header">
+                            <span class="step-icon">2</span>
+                            <h3>Create Lakehouse</h3>
+                        </div>
+                        <div class="step-body">
+                            <p>Set up the lakehouse for raw and curated ACC data:</p>
+                            <ol>
+                                <li>In your workspace, click <strong>+ New</strong> &rarr; <strong>Lakehouse</strong></li>
+                                <li>Name it <code>ACC_Lakehouse</code></li>
+                                <li>Create folders: <code>raw/</code>, <code>curated/</code>, <code>semantic/</code></li>
+                            </ol>
+                            <div class="code-block">
+                                <pre><code># Recommended folder structure
+ACC_Lakehouse/
+├── Tables/
+│   ├── raw_projects
+│   ├── raw_issues
+│   ├── raw_rfis
+│   ├── raw_contracts
+│   ├── raw_change_orders
+│   └── raw_documents
+├── Files/
+│   ├── raw/           # Landing zone for API data
+│   ├── curated/       # Cleaned & transformed
+│   └── semantic/      # Model artifacts</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setup-step">
+                        <div class="step-header">
+                            <span class="step-icon">3</span>
+                            <h3>Configure ACC Data Ingestion</h3>
+                        </div>
+                        <div class="step-body">
+                            <p>Create a Data Pipeline to pull data from ACC APIs:</p>
+                            <div class="code-block">
+                                <pre><code># Python notebook for ACC API ingestion
+import requests
+import json
+from pyspark.sql import SparkSession
+
+# ACC API Configuration
+ACC_BASE_URL = "https://developer.api.autodesk.com"
+ACC_TOKEN = dbutils.secrets.get("acc-secrets", "api-token")
+
+def get_acc_projects():
+    """Fetch all projects from ACC"""
+    headers = {"Authorization": f"Bearer {ACC_TOKEN}"}
+    response = requests.get(
+        f"{ACC_BASE_URL}/construction/admin/v1/projects",
+        headers=headers
+    )
+    return response.json()
+
+def get_acc_issues(project_id):
+    """Fetch issues for a project"""
+    headers = {"Authorization": f"Bearer {ACC_TOKEN}"}
+    response = requests.get(
+        f"{ACC_BASE_URL}/issues/v1/containers/{project_id}/issues",
+        headers=headers
+    )
+    return response.json()
+
+# Load to Delta tables
+projects_df = spark.createDataFrame(get_acc_projects()['results'])
+projects_df.write.mode("overwrite").saveAsTable("raw_projects")</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setup-step">
+                        <div class="step-header">
+                            <span class="step-icon">4</span>
+                            <h3>Data Transformation</h3>
+                        </div>
+                        <div class="step-body">
+                            <p>Transform raw data into dimensional model using Fabric notebooks:</p>
+                            <div class="code-block">
+                                <pre><code># Create dimension and fact tables
+from pyspark.sql import functions as F
+
+# Dimension: Projects
+dim_project = spark.sql("""
+    SELECT
+        id as project_id,
+        name as project_name,
+        type as project_type,
+        status,
+        startDate as start_date,
+        endDate as end_date,
+        address_line_1 as address,
+        latitude,
+        longitude,
+        created_at,
+        updated_at
+    FROM raw_projects
+""")
+dim_project.write.mode("overwrite").saveAsTable("dim_project")
+
+# Fact: Issues
+fact_issues = spark.sql("""
+    SELECT
+        id as issue_id,
+        containerId as project_id,
+        title,
+        description,
+        issueType as issue_type,
+        status,
+        priority,
+        assignedTo as assigned_to,
+        dueDate as due_date,
+        createdAt as created_date,
+        closedAt as closed_date,
+        DATEDIFF(COALESCE(closedAt, current_date()), createdAt) as days_open
+    FROM raw_issues
+""")
+fact_issues.write.mode("overwrite").saveAsTable("fact_issues")</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav-buttons">
+                    <button class="back-btn" onclick="navigateToStep('acc-data')">&larr; Back</button>
+                    <button class="next-btn" onclick="navigateToStep('semantic-model')">Continue &rarr;</button>
+                </div>
+            </section>
+
+            <!-- Step 4: Semantic Model -->
+            <section class="step-content" id="semantic-model">
+                <h2>Build Semantic Model</h2>
+                <p class="step-intro">Create a Power BI / Fabric semantic model with business-friendly metrics and relationships.</p>
+
+                <div class="template-selector">
+                    <h3>Choose a Template</h3>
+                    <div class="templates-grid" id="templatesGrid">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="model-builder">
+                    <h3>Generated Model Configuration</h3>
+                    <div class="tabs">
+                        <button class="tab active" data-tab="measures">Measures (DAX)</button>
+                        <button class="tab" data-tab="relationships">Relationships</button>
+                        <button class="tab" data-tab="tmdl">TMDL Export</button>
+                    </div>
+
+                    <div class="tab-content active" id="measures-tab">
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode('daxCode')">Copy</button>
+                            <pre><code id="daxCode">// Select schemas in Step 2 to generate DAX measures
+
+// Example measures that will be generated:
+
+// Project Metrics
+Project Count = COUNTROWS(dim_project)
+
+Active Projects =
+CALCULATE(
+    COUNTROWS(dim_project),
+    dim_project[status] = "Active"
+)
+
+// Issue Metrics
+Total Issues = COUNTROWS(fact_issues)
+
+Open Issues =
+CALCULATE(
+    COUNTROWS(fact_issues),
+    fact_issues[status] <> "Closed"
+)
+
+Avg Days to Close =
+AVERAGE(fact_issues[days_open])
+
+Issue Resolution Rate =
+DIVIDE(
+    CALCULATE(COUNTROWS(fact_issues), fact_issues[status] = "Closed"),
+    COUNTROWS(fact_issues)
+)
+
+// Cost Metrics
+Total Budget = SUM(dim_budget[revised_amount])
+
+Total Committed = SUM(dim_budget[committed_amount])
+
+Total Actual = SUM(dim_budget[actual_amount])
+
+Budget Variance = [Total Budget] - [Total Actual]
+
+Budget Variance % =
+DIVIDE([Budget Variance], [Total Budget])
+
+// RFI Metrics
+Total RFIs = COUNTROWS(fact_rfis)
+
+Overdue RFIs =
+CALCULATE(
+    COUNTROWS(fact_rfis),
+    fact_rfis[due_date] < TODAY(),
+    fact_rfis[status] <> "Answered"
+)
+
+Avg RFI Response Days =
+AVERAGEX(
+    FILTER(fact_rfis, fact_rfis[responded_date] <> BLANK()),
+    DATEDIFF(fact_rfis[submitted_date], fact_rfis[responded_date], DAY)
+)</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="relationships-tab">
+                        <div class="relationships-diagram">
+                            <h4>Star Schema Relationships</h4>
+                            <div class="relationship-list">
+                                <div class="relationship">
+                                    <code>dim_project[project_id]</code>
+                                    <span class="rel-type">1:*</span>
+                                    <code>fact_issues[project_id]</code>
+                                </div>
+                                <div class="relationship">
+                                    <code>dim_project[project_id]</code>
+                                    <span class="rel-type">1:*</span>
+                                    <code>fact_rfis[project_id]</code>
+                                </div>
+                                <div class="relationship">
+                                    <code>dim_project[project_id]</code>
+                                    <span class="rel-type">1:*</span>
+                                    <code>dim_budget[project_id]</code>
+                                </div>
+                                <div class="relationship">
+                                    <code>dim_project[project_id]</code>
+                                    <span class="rel-type">1:*</span>
+                                    <code>fact_contracts[project_id]</code>
+                                </div>
+                                <div class="relationship">
+                                    <code>fact_contracts[contract_id]</code>
+                                    <span class="rel-type">1:*</span>
+                                    <code>fact_change_orders[contract_id]</code>
+                                </div>
+                                <div class="relationship">
+                                    <code>dim_project[project_id]</code>
+                                    <span class="rel-type">1:*</span>
+                                    <code>fact_documents[project_id]</code>
+                                </div>
+                                <div class="relationship">
+                                    <code>dim_folders[folder_id]</code>
+                                    <span class="rel-type">1:*</span>
+                                    <code>fact_documents[folder_id]</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="tmdl-tab">
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode('tmdlCode')">Copy</button>
+                            <pre><code id="tmdlCode">// TMDL (Tabular Model Definition Language)
+// Use this to create your semantic model programmatically
+
+model ACC_Semantic_Model
+    culture: en-US
+    defaultPowerBIDataSourceVersion: powerBI_V3
+
+    annotations:
+        - name: Description
+          value: Semantic model for Autodesk Construction Cloud data
+
+    // Shared expressions for data source
+    expression ACC_Lakehouse =
+        let
+            Source = Lakehouse.Contents(null, null),
+            Navigation = Source{[workspaceId="your-workspace-id"]}[Data],
+            Lakehouse = Navigation{[lakehouseId="your-lakehouse-id"]}[Data]
+        in
+            Lakehouse
+
+    table dim_project
+        description: Project dimension table
+        lineageTag: project-dimension
+
+        column project_id
+            dataType: string
+            isKey: true
+            summarizeBy: none
+
+        column project_name
+            dataType: string
+            summarizeBy: none
+
+        column status
+            dataType: string
+            summarizeBy: none
+
+        column start_date
+            dataType: dateTime
+            formatString: Short Date
+
+        column end_date
+            dataType: dateTime
+            formatString: Short Date
+
+        partition dim_project-partition = m
+            mode: directLake
+            source =
+                entity "dim_project"
+                    entityPath: "ACC_Lakehouse/dim_project"
+
+    table fact_issues
+        description: Issues fact table
+        lineageTag: issues-fact
+
+        column issue_id
+            dataType: string
+            isKey: true
+
+        column project_id
+            dataType: string
+
+        column status
+            dataType: string
+
+        column priority
+            dataType: string
+
+        column days_open
+            dataType: int64
+
+        measure 'Total Issues' = COUNTROWS(fact_issues)
+        measure 'Open Issues' = CALCULATE(COUNTROWS(fact_issues), fact_issues[status] <> "Closed")
+        measure 'Avg Days to Close' = AVERAGE(fact_issues[days_open])
+
+        partition fact_issues-partition = m
+            mode: directLake
+            source =
+                entity "fact_issues"
+                    entityPath: "ACC_Lakehouse/fact_issues"
+
+    relationship project_to_issues
+        fromColumn: fact_issues.project_id
+        toColumn: dim_project.project_id</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nav-buttons">
+                    <button class="back-btn" onclick="navigateToStep('fabric-setup')">&larr; Back</button>
+                    <button class="next-btn" onclick="navigateToStep('ai-integration')">Continue &rarr;</button>
+                </div>
+            </section>
+
+            <!-- Step 5: AI Integration -->
+            <section class="step-content" id="ai-integration">
+                <h2>AI Platform Integration</h2>
+                <p class="step-intro">Connect your semantic layer to AI services for natural language capabilities.</p>
+
+                <div class="platform-comparison" id="platformComparison">
+                    <!-- Populated by JavaScript -->
+                </div>
+
+                <div class="recommendation-box">
+                    <h3>Recommendation for Your Use Case</h3>
+                    <div class="recommendation">
+                        <h4>Azure OpenAI + Fabric Copilot</h4>
+                        <p>Based on your goals (NL queries, Power BI, APIs), we recommend:</p>
+                        <ol>
+                            <li><strong>Fabric Copilot</strong> - For built-in natural language to DAX in Power BI</li>
+                            <li><strong>Azure OpenAI</strong> - For custom NL query API and advanced scenarios</li>
+                            <li><strong>Azure AI Foundry</strong> - Optional, if you need custom model training on ACC domain</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="setup-guide">
+                    <h3>Azure OpenAI Setup</h3>
+                    <div class="setup-steps" id="aoaiSetupSteps">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="nav-buttons">
+                    <button class="back-btn" onclick="navigateToStep('semantic-model')">&larr; Back</button>
+                    <button class="next-btn" onclick="navigateToStep('nl-queries')">Continue &rarr;</button>
+                </div>
+            </section>
+
+            <!-- Step 6: Natural Language Queries -->
+            <section class="step-content" id="nl-queries">
+                <h2>Natural Language Query Interface</h2>
+                <p class="step-intro">Enable users to ask questions about ACC data in plain English.</p>
+
+                <div class="nl-demo">
+                    <h3>How It Works</h3>
+                    <div class="flow-diagram">
+                        <div class="flow-step">
+                            <span class="flow-icon">1</span>
+                            <p>User asks: "Which projects have the most overdue RFIs?"</p>
+                        </div>
+                        <div class="flow-arrow">&rarr;</div>
+                        <div class="flow-step">
+                            <span class="flow-icon">2</span>
+                            <p>Azure OpenAI translates to DAX using semantic model schema</p>
+                        </div>
+                        <div class="flow-arrow">&rarr;</div>
+                        <div class="flow-step">
+                            <span class="flow-icon">3</span>
+                            <p>Query executes against Fabric semantic model</p>
+                        </div>
+                        <div class="flow-arrow">&rarr;</div>
+                        <div class="flow-step">
+                            <span class="flow-icon">4</span>
+                            <p>Results returned to user with explanation</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="implementation-code">
+                    <h3>Implementation</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode('nlQueryCode')">Copy</button>
+                        <pre><code id="nlQueryCode">"""
+Natural Language to DAX Query Service
+Integrates Azure OpenAI with Fabric Semantic Model
+"""
+
+import os
+from openai import AzureOpenAI
+from azure.identity import DefaultAzureCredential
+import requests
+
+class ACCSemanticQueryService:
+    def __init__(self):
+        self.openai_client = AzureOpenAI(
+            azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
+            api_key=os.environ["AZURE_OPENAI_KEY"],
+            api_version="2024-02-15-preview"
+        )
+        self.fabric_token = self._get_fabric_token()
+        self.semantic_model_id = os.environ["FABRIC_SEMANTIC_MODEL_ID"]
+        self.workspace_id = os.environ["FABRIC_WORKSPACE_ID"]
+
+    def _get_fabric_token(self):
+        credential = DefaultAzureCredential()
+        token = credential.get_token("https://analysis.windows.net/powerbi/api/.default")
+        return token.token
+
+    def _get_semantic_schema(self):
+        """Retrieve semantic model schema for context"""
+        return """
+        Tables:
+        - dim_project (project_id, project_name, status, start_date, end_date)
+        - fact_issues (issue_id, project_id, title, status, priority, due_date, days_open)
+        - fact_rfis (rfi_id, project_id, subject, status, submitted_date, due_date, responded_date)
+        - dim_budget (budget_id, project_id, budget_code, original_amount, revised_amount, committed_amount, actual_amount)
+        - fact_contracts (contract_id, project_id, vendor_id, original_value, current_value, status)
+        - fact_change_orders (change_order_id, contract_id, project_id, amount, status, reason_code)
+
+        Measures:
+        - [Total Issues], [Open Issues], [Avg Days to Close]
+        - [Total RFIs], [Overdue RFIs], [Avg RFI Response Days]
+        - [Total Budget], [Total Committed], [Total Actual], [Budget Variance]
+        - [Project Count], [Active Projects]
+
+        Relationships:
+        - dim_project.project_id -> fact_issues.project_id (1:*)
+        - dim_project.project_id -> fact_rfis.project_id (1:*)
+        - dim_project.project_id -> dim_budget.project_id (1:*)
+        """
+
+    def natural_language_to_dax(self, question: str) -> str:
+        """Convert natural language question to DAX query"""
+
+        system_prompt = f"""You are a DAX query expert for construction project data.
+Given this semantic model schema:
+{self._get_semantic_schema()}
+
+Convert the user's question to a valid DAX EVALUATE query.
+Rules:
+1. Use EVALUATE for queries that return tables
+2. Use existing measures when available
+3. Include TOPN for "top/most" questions
+4. Return ONLY the DAX code, no explanations
+5. Use SUMMARIZE for grouping operations
+"""
+
+        response = self.openai_client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": question}
+            ],
+            temperature=0,
+            max_tokens=500
+        )
+
+        return response.choices[0].message.content.strip()
+
+    def execute_dax_query(self, dax_query: str) -> dict:
+        """Execute DAX query against Fabric semantic model"""
+
+        url = f"https://api.powerbi.com/v1.0/myorg/groups/{self.workspace_id}/datasets/{self.semantic_model_id}/executeQueries"
+
+        headers = {
+            "Authorization": f"Bearer {self.fabric_token}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "queries": [{"query": dax_query}],
+            "serializerSettings": {"includeNulls": True}
+        }
+
+        response = requests.post(url, headers=headers, json=payload)
+        return response.json()
+
+    def answer_question(self, question: str) -> dict:
+        """Full pipeline: question -> DAX -> results -> explanation"""
+
+        # Step 1: Convert to DAX
+        dax_query = self.natural_language_to_dax(question)
+
+        # Step 2: Execute query
+        results = self.execute_dax_query(dax_query)
+
+        # Step 3: Generate natural language explanation
+        explanation_prompt = f"""
+        Question: {question}
+        DAX Query: {dax_query}
+        Results: {results}
+
+        Provide a clear, concise answer to the question based on the results.
+        Include specific numbers and project names where relevant.
+        """
+
+        explanation = self.openai_client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": explanation_prompt}],
+            temperature=0.3
+        )
+
+        return {
+            "question": question,
+            "dax_query": dax_query,
+            "results": results,
+            "answer": explanation.choices[0].message.content
+        }
+
+
+# Example usage
+if __name__ == "__main__":
+    service = ACCSemanticQueryService()
+
+    questions = [
+        "Which projects have the most overdue RFIs?",
+        "What is the total budget variance across all active projects?",
+        "Show me the top 5 projects by open issue count",
+        "What's the average time to close issues by project?"
+    ]
+
+    for q in questions:
+        result = service.answer_question(q)
+        print(f"\nQ: {q}")
+        print(f"A: {result['answer']}")</code></pre>
+                    </div>
+                </div>
+
+                <div class="example-queries">
+                    <h3>Example Queries by Category</h3>
+                    <div class="query-categories" id="queryCategories">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="nav-buttons">
+                    <button class="back-btn" onclick="navigateToStep('ai-integration')">&larr; Back</button>
+                    <button class="next-btn" onclick="navigateToStep('deployment')">Continue &rarr;</button>
+                </div>
+            </section>
+
+            <!-- Step 7: Deployment -->
+            <section class="step-content" id="deployment">
+                <h2>Deployment & Best Practices</h2>
+                <p class="step-intro">Deploy your semantic layer and set up for production use.</p>
+
+                <div class="deployment-checklist">
+                    <h3>Deployment Checklist</h3>
+                    <div class="checklist">
+                        <label class="checklist-item">
+                            <input type="checkbox">
+                            <span>Fabric workspace configured with appropriate capacity</span>
+                        </label>
+                        <label class="checklist-item">
+                            <input type="checkbox">
+                            <span>ACC data ingestion pipeline tested and scheduled</span>
+                        </label>
+                        <label class="checklist-item">
+                            <input type="checkbox">
+                            <span>Semantic model created with all measures and relationships</span>
+                        </label>
+                        <label class="checklist-item">
+                            <input type="checkbox">
+                            <span>Row-level security (RLS) configured for project access</span>
+                        </label>
+                        <label class="checklist-item">
+                            <input type="checkbox">
+                            <span>Azure OpenAI resource deployed and models configured</span>
+                        </label>
+                        <label class="checklist-item">
+                            <input type="checkbox">
+                            <span>Natural language query service tested with sample questions</span>
+                        </label>
+                        <label class="checklist-item">
+                            <input type="checkbox">
+                            <span>Power BI reports created and shared</span>
+                        </label>
+                        <label class="checklist-item">
+                            <input type="checkbox">
+                            <span>API endpoints documented and secured</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="best-practices">
+                    <h3>Best Practices</h3>
+
+                    <div class="practice-card">
+                        <h4>Data Freshness</h4>
+                        <ul>
+                            <li>Schedule incremental refresh for large tables</li>
+                            <li>Use change data capture (CDC) when available from ACC APIs</li>
+                            <li>Set appropriate refresh frequency (hourly for active projects)</li>
+                        </ul>
+                    </div>
+
+                    <div class="practice-card">
+                        <h4>Security</h4>
+                        <ul>
+                            <li>Implement row-level security based on project membership</li>
+                            <li>Use managed identity for service connections</li>
+                            <li>Store API keys in Azure Key Vault</li>
+                            <li>Audit query access through Azure Monitor</li>
+                        </ul>
+                    </div>
+
+                    <div class="practice-card">
+                        <h4>Performance</h4>
+                        <ul>
+                            <li>Use Direct Lake mode for large datasets</li>
+                            <li>Create aggregation tables for common queries</li>
+                            <li>Optimize DAX measures for calculation groups</li>
+                            <li>Monitor query performance in Fabric metrics</li>
+                        </ul>
+                    </div>
+
+                    <div class="practice-card">
+                        <h4>Natural Language Quality</h4>
+                        <ul>
+                            <li>Add detailed descriptions to all measures and columns</li>
+                            <li>Include synonyms for construction terminology</li>
+                            <li>Test with real user questions and iterate on prompts</li>
+                            <li>Implement feedback loop for query improvements</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="final-architecture">
+                    <h3>Final Architecture</h3>
+                    <div class="code-block">
+                        <pre><code>┌─────────────────────────────────────────────────────────────────┐
+│                    ACC SEMANTIC LAYER ARCHITECTURE               │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌──────────────┐     ┌──────────────────────────────────────┐  │
+│  │   Autodesk   │────▶│        Microsoft Fabric              │  │
+│  │ Construction │     │  ┌─────────────────────────────────┐ │  │
+│  │    Cloud     │     │  │         Lakehouse               │ │  │
+│  └──────────────┘     │  │  ┌─────────┐  ┌─────────────┐  │ │  │
+│                       │  │  │ Raw     │─▶│  Curated    │  │ │  │
+│                       │  │  │ Tables  │  │  Tables     │  │ │  │
+│                       │  │  └─────────┘  └──────┬──────┘  │ │  │
+│                       │  └──────────────────────┼─────────┘ │  │
+│                       │                         ▼           │  │
+│                       │  ┌──────────────────────────────┐   │  │
+│                       │  │     Semantic Model           │   │  │
+│                       │  │  ┌────────┐ ┌──────────┐    │   │  │
+│                       │  │  │ Dims   │ │ Facts    │    │   │  │
+│                       │  │  └────────┘ └──────────┘    │   │  │
+│                       │  │  ┌────────────────────┐     │   │  │
+│                       │  │  │     Measures       │     │   │  │
+│                       │  │  └────────────────────┘     │   │  │
+│                       │  └──────────────┬───────────────┘   │  │
+│                       └─────────────────┼───────────────────┘  │
+│                                         ▼                      │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │                   Azure OpenAI                            │  │
+│  │  ┌─────────────────────┐  ┌──────────────────────────┐   │  │
+│  │  │  NL to DAX Service  │  │  Answer Generation       │   │  │
+│  │  └─────────────────────┘  └──────────────────────────┘   │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                              ▼                                  │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │                   Consumption Layer                       │  │
+│  │  ┌──────────┐  ┌──────────────┐  ┌──────────────────┐   │  │
+│  │  │ Power BI │  │ NL Query API │  │ Custom Apps      │   │  │
+│  │  │ Reports  │  │              │  │                  │   │  │
+│  │  └──────────┘  └──────────────┘  └──────────────────┘   │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘</code></pre>
+                    </div>
+                </div>
+
+                <div class="completion-message">
+                    <h3>You're Ready!</h3>
+                    <p>You now have a complete guide to building a semantic layer for your ACC data. Follow the steps above to implement each component.</p>
+                    <div class="action-buttons">
+                        <button class="primary-btn" onclick="exportGuide()">Export Guide as PDF</button>
+                        <button class="secondary-btn" onclick="downloadCode()">Download All Code</button>
+                    </div>
+                </div>
+
+                <div class="nav-buttons">
+                    <button class="back-btn" onclick="navigateToStep('nl-queries')">&larr; Back</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
