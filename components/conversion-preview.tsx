@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Download, Copy, Check, ArrowLeft, FileText, Table } from "lucide-react"
+import { Download, Copy, Check, ArrowLeft, FileText, Package } from "lucide-react"
 import type { ConvertedFile } from "@/app/page"
 import { cn } from "@/lib/utils"
 
@@ -14,44 +14,60 @@ interface ConversionPreviewProps {
 
 export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
   const [activeFileIndex, setActiveFileIndex] = useState(0)
-  const [viewMode, setViewMode] = useState<"aio" | "table">("aio")
+  const [selectedRowIndex, setSelectedRowIndex] = useState(0)
   const [copied, setCopied] = useState(false)
 
   const activeFile = files[activeFileIndex]
 
-  const handleCopy = useCallback(async () => {
-    const content = activeFile.aioLines.join("\n")
+  const handleCopyAio = useCallback(async () => {
+    console.log("[v0] Copying AIO for row", selectedRowIndex)
+    const content = activeFile.aioLines[selectedRowIndex]
     await navigator.clipboard.writeText(content)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
-  }, [activeFile])
+  }, [activeFile, selectedRowIndex])
 
-  const handleDownload = useCallback(() => {
-    const content = activeFile.aioLines.join("\n") + "\n"
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = activeFile.originalName.replace(/\.csv$/i, ".aio")
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }, [activeFile])
-
-  const handleDownloadAll = useCallback(() => {
-    files.forEach((file) => {
-      const content = file.aioLines.join("\n") + "\n"
+  const handleDownloadSelectedAio = useCallback(() => {
+    console.log("[v0] Downloading selected AIO for row", selectedRowIndex)
+    try {
+      const content = activeFile.aioLines[selectedRowIndex] + "\n"
       const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      a.download = file.originalName.replace(/\.csv$/i, ".aio")
+      a.download = activeFile.originalName.replace(/\.csv$/i, `-row${selectedRowIndex + 1}.aio`)
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
-    })
+      console.log("[v0] Download triggered successfully")
+    } catch (error) {
+      console.error("[v0] Download error:", error)
+    }
+  }, [activeFile, selectedRowIndex])
+
+  const handleDownloadAllAios = useCallback(() => {
+    console.log("[v0] Downloading all AIOs")
+    try {
+      // Download each file as a separate .aio file
+      files.forEach((file, index) => {
+        setTimeout(() => {
+          const content = file.aioLines.join("\n") + "\n"
+          const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement("a")
+          a.href = url
+          a.download = file.originalName.replace(/\.csv$/i, ".aio")
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          URL.revokeObjectURL(url)
+          console.log("[v0] Downloaded file:", file.originalName)
+        }, index * 200) // Stagger downloads to avoid browser blocking
+      })
+    } catch (error) {
+      console.error("[v0] Download all error:", error)
+    }
   }, [files])
 
   return (
@@ -61,12 +77,6 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
           <ArrowLeft className="h-4 w-4" />
           Upload more files
         </Button>
-        {files.length > 1 && (
-          <Button onClick={handleDownloadAll} className="gap-2">
-            <Download className="h-4 w-4" />
-            Download All ({files.length} files)
-          </Button>
-        )}
       </div>
 
       {files.length > 1 && (
@@ -76,7 +86,7 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
               key={file.originalName}
               variant={index === activeFileIndex ? "default" : "outline"}
               size="sm"
-              onClick={() => setActiveFileIndex(index)}
+              onClick={() => { setActiveFileIndex(index); setSelectedRowIndex(0); }}
               className="gap-2"
             >
               <FileText className="h-4 w-4" />
@@ -86,69 +96,29 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
         </div>
       )}
 
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              {activeFile.originalName}
-              <span className="text-sm font-normal text-muted-foreground">
-                ({activeFile.aioLines.length} rows)
-              </span>
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <div className="flex rounded-lg border border-border p-1">
-                <button
-                  onClick={() => setViewMode("aio")}
-                  className={cn(
-                    "px-3 py-1 text-sm rounded-md transition-colors",
-                    viewMode === "aio"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  AIO
-                </button>
-                <button
-                  onClick={() => setViewMode("table")}
-                  className={cn(
-                    "px-3 py-1 text-sm rounded-md transition-colors",
-                    viewMode === "table"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <Table className="h-4 w-4" />
-                </button>
-              </div>
-              <Button variant="outline" size="sm" onClick={handleCopy} className="gap-2">
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {copied ? "Copied" : "Copy"}
-              </Button>
-              <Button size="sm" onClick={handleDownload} className="gap-2">
-                <Download className="h-4 w-4" />
-                Download .aio
+      <div className="flex flex-col gap-6">
+        {/* CSV Grid View */}
+        <Card>
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                CSV Data
+                <span className="text-sm font-normal text-muted-foreground">
+                  ({activeFile.csvData.length} rows)
+                </span>
+              </CardTitle>
+              <Button onClick={handleDownloadAllAios} className="gap-2" size="sm">
+                <Package className="h-4 w-4" />
+                Download All AIOs
               </Button>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {viewMode === "aio" ? (
-            <div className="bg-muted/50 rounded-lg p-4 max-h-96 overflow-auto">
-              <pre className="text-sm font-mono text-foreground whitespace-pre-wrap break-all">
-                {activeFile.aioLines.slice(0, 100).join("\n")}
-                {activeFile.aioLines.length > 100 && (
-                  <span className="text-muted-foreground">
-                    {"\n\n"}... and {activeFile.aioLines.length - 100} more lines
-                  </span>
-                )}
-              </pre>
-            </div>
-          ) : (
-            <div className="overflow-auto max-h-96">
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-auto max-h-96 border border-border rounded-lg">
               <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-card">
-                  <tr className="border-b border-border">
+                <thead className="sticky top-0 bg-card border-b border-border">
+                  <tr>
                     <th className="px-3 py-2 text-left font-medium text-muted-foreground">#</th>
                     {activeFile.headers.map((header) => (
                       <th
@@ -161,8 +131,17 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {activeFile.csvData.slice(0, 50).map((row, rowIndex) => (
-                    <tr key={rowIndex} className="border-b border-border/50">
+                  {activeFile.csvData.map((row, rowIndex) => (
+                    <tr 
+                      key={rowIndex} 
+                      className={cn(
+                        "border-b border-border/50 cursor-pointer transition-colors",
+                        rowIndex === selectedRowIndex 
+                          ? "bg-primary/10" 
+                          : "hover:bg-muted/50"
+                      )}
+                      onClick={() => setSelectedRowIndex(rowIndex)}
+                    >
                       <td className="px-3 py-2 text-muted-foreground">{rowIndex + 1}</td>
                       {row.map((cell, cellIndex) => (
                         <td key={cellIndex} className="px-3 py-2 text-foreground">
@@ -173,28 +152,54 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
                   ))}
                 </tbody>
               </table>
-              {activeFile.csvData.length > 50 && (
-                <p className="text-center text-sm text-muted-foreground py-4">
-                  Showing 50 of {activeFile.csvData.length} rows
-                </p>
-              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Sample AIO Output</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-muted/50 rounded-lg p-3 overflow-x-auto">
-            <code className="text-xs font-mono text-primary break-all">
-              {activeFile.aioLines[0]}
-            </code>
-          </div>
-        </CardContent>
-      </Card>
+        {/* AIO Output View */}
+        <Card>
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                AIO Output
+                <span className="text-sm font-normal text-muted-foreground">
+                  (Row {selectedRowIndex + 1})
+                </span>
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={handleCopyAio} className="gap-2">
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copied ? "Copied" : "Copy"}
+                </Button>
+                <Button size="sm" onClick={handleDownloadSelectedAio} className="gap-2">
+                  <Download className="h-4 w-4" />
+                  Download .aio
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-muted/50 rounded-lg p-4 min-h-[200px]">
+              <pre className="text-sm font-mono text-primary whitespace-pre-wrap break-all">
+                {activeFile.aioLines[selectedRowIndex]}
+              </pre>
+            </div>
+            <div className="mt-4 text-sm text-muted-foreground">
+              <p className="font-medium mb-2">AIO Format Breakdown:</p>
+              <div className="flex flex-wrap gap-2">
+                {activeFile.headers.map((header, idx) => (
+                  <span 
+                    key={header} 
+                    className="inline-flex items-center px-2 py-1 rounded bg-secondary text-xs font-mono"
+                  >
+                    [{header}.{activeFile.csvData[selectedRowIndex]?.[idx] ?? ""}]
+                  </span>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

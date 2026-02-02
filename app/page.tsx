@@ -3,7 +3,8 @@
 import { useState, useCallback } from "react"
 import { FileUpload } from "@/components/file-upload"
 import { ConversionPreview } from "@/components/conversion-preview"
-import { Database } from "lucide-react"
+import { Database, ArrowRight, Layers, Cpu, Globe } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export interface ConvertedFile {
   originalName: string
@@ -17,7 +18,6 @@ function csvToAio(headers: string[], row: string[]): string {
   for (let i = 0; i < headers.length; i++) {
     const key = headers[i]
     let val = row[i] ?? ""
-    // Remove line breaks/tabs so the AIO fits on one line
     val = val.replace(/\r\n/g, " ").replace(/\n/g, " ").replace(/\r/g, " ").replace(/\t/g, " ")
     parts.push(`[${key}.${val}]`)
   }
@@ -28,7 +28,6 @@ function parseCSV(text: string): { headers: string[]; rows: string[][] } {
   const lines = text.split(/\r?\n/).filter((line) => line.trim() !== "")
   if (lines.length === 0) return { headers: [], rows: [] }
 
-  // Simple CSV parsing (handles basic cases, not full RFC 4180)
   const parseLine = (line: string): string[] => {
     const result: string[] = []
     let current = ""
@@ -61,6 +60,7 @@ function parseCSV(text: string): { headers: string[]; rows: string[][] } {
 }
 
 export default function HomePage() {
+  const [showConverter, setShowConverter] = useState(false)
   const [convertedFiles, setConvertedFiles] = useState<ConvertedFile[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
 
@@ -96,20 +96,159 @@ export default function HomePage() {
     setConvertedFiles([])
   }, [])
 
+  if (!showConverter) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-secondary/30">
+        {/* Header */}
+        <header className="border-b border-border bg-card/80 backdrop-blur-sm">
+          <div className="container mx-auto px-4 py-4 max-w-6xl">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary text-primary-foreground">
+                <Database className="h-5 w-5" />
+              </div>
+              <span className="font-semibold text-lg text-foreground">AIO Generator</span>
+            </div>
+          </div>
+        </header>
+
+        {/* Hero Section */}
+        <main className="flex-1 container mx-auto px-4 py-16 max-w-6xl">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+              <Cpu className="h-4 w-4" />
+              Information Physics Standard Model
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 text-balance leading-tight">
+              AIO Generator
+            </h1>
+            <p className="text-xl text-primary font-medium mb-4">
+              by AWC Technology LLC
+            </p>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed">
+              Transform your CSV data into Associated Information Objects (AIOs) - the fundamental 
+              unit of information in the new Information Physics Standard Model.
+            </p>
+          </div>
+
+          {/* Feature Cards */}
+          <div className="grid md:grid-cols-3 gap-6 mb-16">
+            <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
+              <div className="p-3 rounded-lg bg-primary/10 w-fit mb-4">
+                <Layers className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-semibold text-lg text-foreground mb-2">
+                Application Agnostic
+              </h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                AIOs are information objects not tied to any application or relational database schema, 
+                enabling universal data interoperability.
+              </p>
+            </div>
+
+            <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
+              <div className="p-3 rounded-lg bg-primary/10 w-fit mb-4">
+                <Globe className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-semibold text-lg text-foreground mb-2">
+                Hyper-Semantic Model
+              </h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                AIOs form the basis of a new hyper-semantic model that captures meaning and 
+                relationships in a way traditional data formats cannot.
+              </p>
+            </div>
+
+            <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
+              <div className="p-3 rounded-lg bg-primary/10 w-fit mb-4">
+                <Cpu className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-semibold text-lg text-foreground mb-2">
+                Next-Gen LLM Foundation
+              </h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                This hyper-semantic model will serve as the foundation upon which a new class of 
+                Large Language Models will operate with enhanced understanding.
+              </p>
+            </div>
+          </div>
+
+          {/* Conversion Process */}
+          <div className="bg-card rounded-xl p-8 border border-border shadow-sm mb-16">
+            <h2 className="text-2xl font-semibold text-foreground mb-6 text-center">
+              The Conversion Process
+            </h2>
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
+              <div className="flex flex-col items-center text-center">
+                <div className="p-4 rounded-xl bg-secondary mb-3">
+                  <code className="text-sm font-mono text-muted-foreground">CSV</code>
+                </div>
+                <p className="text-sm text-muted-foreground">Tabular Data</p>
+              </div>
+              <ArrowRight className="h-6 w-6 text-primary hidden md:block" />
+              <div className="h-6 w-px bg-border md:hidden" />
+              <div className="flex flex-col items-center text-center">
+                <div className="p-4 rounded-xl bg-primary/10 mb-3">
+                  <code className="text-sm font-mono text-primary">[Col.Val]</code>
+                </div>
+                <p className="text-sm text-muted-foreground">AIO Format</p>
+              </div>
+              <ArrowRight className="h-6 w-6 text-primary hidden md:block" />
+              <div className="h-6 w-px bg-border md:hidden" />
+              <div className="flex flex-col items-center text-center">
+                <div className="p-4 rounded-xl bg-accent mb-3">
+                  <code className="text-sm font-mono text-accent-foreground">.aio</code>
+                </div>
+                <p className="text-sm text-muted-foreground">Semantic Object</p>
+              </div>
+            </div>
+            <p className="text-center text-sm text-muted-foreground mt-6 max-w-2xl mx-auto">
+              Each row of your CSV is transformed into a single-line AIO containing all column-value 
+              pairs in the format: <code className="bg-secondary px-1.5 py-0.5 rounded text-xs">[Column1.Value1][Column2.Value2]...</code>
+            </p>
+          </div>
+
+          {/* CTA */}
+          <div className="text-center">
+            <Button 
+              size="lg" 
+              onClick={() => setShowConverter(true)}
+              className="gap-2 px-8"
+            >
+              Start Converting
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="border-t border-border py-6 bg-card/50">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <p className="text-sm text-muted-foreground text-center">
+              AWC Technology LLC - Pioneering the Information Physics Standard Model
+            </p>
+          </div>
+        </footer>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4 max-w-5xl">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Database className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold text-foreground">AIO Generator</h1>
-              <p className="text-sm text-muted-foreground">
-                Convert CSV files to Associated Information Object format
-              </p>
-            </div>
+          <div className="flex items-center justify-between">
+            <button 
+              onClick={() => { setShowConverter(false); handleClear(); }}
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
+              <div className="p-2 rounded-lg bg-primary text-primary-foreground">
+                <Database className="h-5 w-5" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold text-foreground">AIO Generator</h1>
+                <p className="text-xs text-muted-foreground">by AWC Technology LLC</p>
+              </div>
+            </button>
           </div>
         </div>
       </header>
@@ -122,7 +261,7 @@ export default function HomePage() {
         )}
       </main>
 
-      <footer className="border-t border-border py-4">
+      <footer className="border-t border-border py-4 bg-card/50">
         <div className="container mx-auto px-4 max-w-5xl">
           <p className="text-sm text-muted-foreground text-center">
             Each row becomes: [Column1.Value1][Column2.Value2]...
