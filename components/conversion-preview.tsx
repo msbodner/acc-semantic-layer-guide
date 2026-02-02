@@ -16,68 +16,163 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
   const [activeFileIndex, setActiveFileIndex] = useState(0)
   const [selectedRowIndex, setSelectedRowIndex] = useState(0)
   const [copied, setCopied] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [downloadStatus, setDownloadStatus] = useState<"idle" | "success" | "error">("idle")
+  const [downloadAllStatus, setDownloadAllStatus] = useState<"idle" | "success" | "error">("idle")
+  const [downloadedFiles, setDownloadedFiles] = useState<string[]>([])
+  const [showDownloaded, setShowDownloaded] = useState(false)
 
   const activeFile = files[activeFileIndex]
 
   const handleCopyAio = useCallback(async () => {
-    console.log("[v0] Copying AIO for row", selectedRowIndex)
-    const content = activeFile.aioLines[selectedRowIndex]
-    await navigator.clipboard.writeText(content)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    setError(null)
+    try {
+      const content = activeFile.aioLines[selectedRowIndex]
+      await navigator.clipboard.writeText(content)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to copy"
+      setError(`Copy failed: ${message}`)
+    }
   }, [activeFile, selectedRowIndex])
 
   const handleDownloadSelectedAio = useCallback(() => {
-    console.log("[v0] Downloading selected AIO for row", selectedRowIndex)
+    setError(null)
+    setDownloadStatus("idle")
     try {
+      if (!activeFile || !activeFile.aioLines || !activeFile.aioLines[selectedRowIndex]) {
+        throw new Error("No AIO content available for selected row")
+      }
       const content = activeFile.aioLines[selectedRowIndex] + "\n"
-      const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = activeFile.originalName.replace(/\.csv$/i, `-row${selectedRowIndex + 1}.aio`)
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-      console.log("[v0] Download triggered successfully")
-    } catch (error) {
-      console.error("[v0] Download error:", error)
+      const fileName = activeFile.originalName.replace(/\.csv$/i, `-row${selectedRowIndex + 1}.aio`)
+      
+      // Use data URL approach for better sandbox compatibility
+      const dataUrl = "data:text/plain;charset=utf-8," + encodeURIComponent(content)
+      const link = document.createElement("a")
+      link.href = dataUrl
+      link.download = fileName
+      link.target = "_blank"
+      link.rel = "noopener noreferrer"
+      
+      // Try to trigger download
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      setDownloadStatus("success")
+      setDownloadedFiles(prev => [...prev, fileName])
+      setTimeout(() => setDownloadStatus("idle"), 3000)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error"
+      setError(`Download failed: ${message}`)
+      setDownloadStatus("error")
+      setTimeout(() => setDownloadStatus("idle"), 5000)
     }
   }, [activeFile, selectedRowIndex])
 
   const handleDownloadAllAios = useCallback(() => {
-    console.log("[v0] Downloading all AIOs")
+    setError(null)
+    setDownloadAllStatus("idle")
     try {
+      if (!files || files.length === 0) {
+        throw new Error("No files to download")
+      }
       // Download each file as a separate .aio file
       files.forEach((file, index) => {
         setTimeout(() => {
-          const content = file.aioLines.join("\n") + "\n"
-          const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
-          const url = URL.createObjectURL(blob)
-          const a = document.createElement("a")
-          a.href = url
-          a.download = file.originalName.replace(/\.csv$/i, ".aio")
-          document.body.appendChild(a)
-          a.click()
-          document.body.removeChild(a)
-          URL.revokeObjectURL(url)
-          console.log("[v0] Downloaded file:", file.originalName)
-        }, index * 200) // Stagger downloads to avoid browser blocking
+          try {
+            const content = file.aioLines.join("\n") + "\n"
+            const aioFileName = file.originalName.replace(/\.csv$/i, ".aio")
+            
+            // Use data URL approach for better sandbox compatibility
+            const dataUrl = "data:text/plain;charset=utf-8," + encodeURIComponent(content)
+            const link = document.createElement("a")
+            link.href = dataUrl
+            link.download = aioFileName
+            link.target = "_blank"
+            link.rel = "noopener noreferrer"
+            
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            
+            setDownloadedFiles(prev => [...prev, aioFileName])
+          } catch (innerErr) {
+            const message = innerErr instanceof Error ? innerErr.message : "Unknown error"
+            setError(`Download failed for ${file.originalName}: ${message}`)
+            setDownloadAllStatus("error")
+          }
+        }, index * 500) // Stagger downloads to avoid browser blocking
       })
-    } catch (error) {
-      console.error("[v0] Download all error:", error)
+      setDownloadAllStatus("success")
+      setTimeout(() => setDownloadAllStatus("idle"), 3000)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error"
+      setError(`Download all failed: ${message}`)
+      setDownloadAllStatus("error")
+      setTimeout(() => setDownloadAllStatus("idle"), 5000)
     }
   }, [files])
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-lg">
+          <strong>Error:</strong> {error}
+          <button 
+            onClick={() => setError(null)} 
+            className="ml-4 underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={onClear} className="gap-2">
           <ArrowLeft className="h-4 w-4" />
           Upload more files
         </Button>
+        {downloadedFiles.length > 0 && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowDownloaded(!showDownloaded)}
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            View Downloaded ({downloadedFiles.length})
+          </Button>
+        )}
       </div>
+      
+      {showDownloaded && downloadedFiles.length > 0 && (
+        <Card className="bg-green-50 border-green-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center justify-between">
+              <span className="text-green-800">Downloaded Files (saved to your Downloads folder)</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setDownloadedFiles([])}
+                className="text-xs text-green-600 hover:text-green-800"
+              >
+                Clear list
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <ul className="text-sm space-y-1">
+              {downloadedFiles.map((fileName, idx) => (
+                <li key={idx} className="flex items-center gap-2 text-green-700">
+                  <Check className="h-3 w-3" />
+                  {fileName}
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       {files.length > 1 && (
         <div className="flex gap-2 flex-wrap">
@@ -108,9 +203,17 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
                   ({activeFile.csvData.length} rows)
                 </span>
               </CardTitle>
-              <Button onClick={handleDownloadAllAios} className="gap-2" size="sm">
+              <Button 
+                onClick={handleDownloadAllAios} 
+                className={cn(
+                  "gap-2",
+                  downloadAllStatus === "success" && "bg-green-600 hover:bg-green-700",
+                  downloadAllStatus === "error" && "bg-red-600 hover:bg-red-700"
+                )} 
+                size="sm"
+              >
                 <Package className="h-4 w-4" />
-                Download All AIOs
+                {downloadAllStatus === "success" ? "Downloaded!" : downloadAllStatus === "error" ? "Failed!" : "Download All AIOs"}
               </Button>
             </div>
           </CardHeader>
@@ -171,9 +274,17 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
                   {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   {copied ? "Copied" : "Copy"}
                 </Button>
-                <Button size="sm" onClick={handleDownloadSelectedAio} className="gap-2">
+                <Button 
+                  size="sm" 
+                  onClick={handleDownloadSelectedAio} 
+                  className={cn(
+                    "gap-2",
+                    downloadStatus === "success" && "bg-green-600 hover:bg-green-700",
+                    downloadStatus === "error" && "bg-red-600 hover:bg-red-700"
+                  )}
+                >
                   <Download className="h-4 w-4" />
-                  Download .aio
+                  {downloadStatus === "success" ? "Downloaded!" : downloadStatus === "error" ? "Failed!" : "Download .aio"}
                 </Button>
               </div>
             </div>
