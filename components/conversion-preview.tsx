@@ -86,7 +86,7 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="flex flex-col gap-6">
         {/* CSV Grid View */}
         <Card>
           <CardHeader className="pb-4">
