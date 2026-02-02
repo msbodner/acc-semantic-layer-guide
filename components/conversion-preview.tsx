@@ -45,20 +45,22 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
         throw new Error("No AIO content available for selected row")
       }
       const content = activeFile.aioLines[selectedRowIndex] + "\n"
-      const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
-      const url = URL.createObjectURL(blob)
+      const fileName = activeFile.originalName.replace(/\.csv$/i, `-row${selectedRowIndex + 1}.aio`)
+      
+      // Use data URL approach for better sandbox compatibility
+      const dataUrl = "data:text/plain;charset=utf-8," + encodeURIComponent(content)
       const link = document.createElement("a")
-      link.href = url
-      link.download = activeFile.originalName.replace(/\.csv$/i, `-row${selectedRowIndex + 1}.aio`)
-      link.style.display = "none"
+      link.href = dataUrl
+      link.download = fileName
+      link.target = "_blank"
+      link.rel = "noopener noreferrer"
+      
+      // Try to trigger download
       document.body.appendChild(link)
       link.click()
-      setTimeout(() => {
-        document.body.removeChild(link)
-        URL.revokeObjectURL(url)
-      }, 100)
+      document.body.removeChild(link)
+      
       setDownloadStatus("success")
-      const fileName = activeFile.originalName.replace(/\.csv$/i, `-row${selectedRowIndex + 1}.aio`)
       setDownloadedFiles(prev => [...prev, fileName])
       setTimeout(() => setDownloadStatus("idle"), 3000)
     } catch (err) {
@@ -81,26 +83,27 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
         setTimeout(() => {
           try {
             const content = file.aioLines.join("\n") + "\n"
-            const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
-            const url = URL.createObjectURL(blob)
+            const aioFileName = file.originalName.replace(/\.csv$/i, ".aio")
+            
+            // Use data URL approach for better sandbox compatibility
+            const dataUrl = "data:text/plain;charset=utf-8," + encodeURIComponent(content)
             const link = document.createElement("a")
-            link.href = url
-            link.download = file.originalName.replace(/\.csv$/i, ".aio")
-            link.style.display = "none"
+            link.href = dataUrl
+            link.download = aioFileName
+            link.target = "_blank"
+            link.rel = "noopener noreferrer"
+            
             document.body.appendChild(link)
             link.click()
-            setTimeout(() => {
-              document.body.removeChild(link)
-              URL.revokeObjectURL(url)
-            }, 100)
-            const aioFileName = file.originalName.replace(/\.csv$/i, ".aio")
+            document.body.removeChild(link)
+            
             setDownloadedFiles(prev => [...prev, aioFileName])
           } catch (innerErr) {
             const message = innerErr instanceof Error ? innerErr.message : "Unknown error"
             setError(`Download failed for ${file.originalName}: ${message}`)
             setDownloadAllStatus("error")
           }
-        }, index * 300) // Stagger downloads to avoid browser blocking
+        }, index * 500) // Stagger downloads to avoid browser blocking
       })
       setDownloadAllStatus("success")
       setTimeout(() => setDownloadAllStatus("idle"), 3000)
