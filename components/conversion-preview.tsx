@@ -17,6 +17,8 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
   const [selectedRowIndex, setSelectedRowIndex] = useState(0)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [downloadStatus, setDownloadStatus] = useState<"idle" | "success" | "error">("idle")
+  const [downloadAllStatus, setDownloadAllStatus] = useState<"idle" | "success" | "error">("idle")
 
   const activeFile = files[activeFileIndex]
 
@@ -35,6 +37,7 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
 
   const handleDownloadSelectedAio = useCallback(() => {
     setError(null)
+    setDownloadStatus("idle")
     try {
       if (!activeFile || !activeFile.aioLines || !activeFile.aioLines[selectedRowIndex]) {
         throw new Error("No AIO content available for selected row")
@@ -52,15 +55,19 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
         document.body.removeChild(link)
         URL.revokeObjectURL(url)
       }, 100)
+      setDownloadStatus("success")
+      setTimeout(() => setDownloadStatus("idle"), 3000)
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error"
       setError(`Download failed: ${message}`)
-      alert(`Download failed: ${message}`)
+      setDownloadStatus("error")
+      setTimeout(() => setDownloadStatus("idle"), 5000)
     }
   }, [activeFile, selectedRowIndex])
 
   const handleDownloadAllAios = useCallback(() => {
     setError(null)
+    setDownloadAllStatus("idle")
     try {
       if (!files || files.length === 0) {
         throw new Error("No files to download")
@@ -85,13 +92,17 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
           } catch (innerErr) {
             const message = innerErr instanceof Error ? innerErr.message : "Unknown error"
             setError(`Download failed for ${file.originalName}: ${message}`)
+            setDownloadAllStatus("error")
           }
         }, index * 300) // Stagger downloads to avoid browser blocking
       })
+      setDownloadAllStatus("success")
+      setTimeout(() => setDownloadAllStatus("idle"), 3000)
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error"
       setError(`Download all failed: ${message}`)
-      alert(`Download all failed: ${message}`)
+      setDownloadAllStatus("error")
+      setTimeout(() => setDownloadAllStatus("idle"), 5000)
     }
   }, [files])
 
@@ -144,9 +155,17 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
                   ({activeFile.csvData.length} rows)
                 </span>
               </CardTitle>
-              <Button onClick={handleDownloadAllAios} className="gap-2" size="sm">
+              <Button 
+                onClick={handleDownloadAllAios} 
+                className={cn(
+                  "gap-2",
+                  downloadAllStatus === "success" && "bg-green-600 hover:bg-green-700",
+                  downloadAllStatus === "error" && "bg-red-600 hover:bg-red-700"
+                )} 
+                size="sm"
+              >
                 <Package className="h-4 w-4" />
-                Download All AIOs
+                {downloadAllStatus === "success" ? "Downloaded!" : downloadAllStatus === "error" ? "Failed!" : "Download All AIOs"}
               </Button>
             </div>
           </CardHeader>
@@ -207,9 +226,17 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
                   {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   {copied ? "Copied" : "Copy"}
                 </Button>
-                <Button size="sm" onClick={handleDownloadSelectedAio} className="gap-2">
+                <Button 
+                  size="sm" 
+                  onClick={handleDownloadSelectedAio} 
+                  className={cn(
+                    "gap-2",
+                    downloadStatus === "success" && "bg-green-600 hover:bg-green-700",
+                    downloadStatus === "error" && "bg-red-600 hover:bg-red-700"
+                  )}
+                >
                   <Download className="h-4 w-4" />
-                  Download .aio
+                  {downloadStatus === "success" ? "Downloaded!" : downloadStatus === "error" ? "Failed!" : "Download .aio"}
                 </Button>
               </div>
             </div>
