@@ -19,6 +19,8 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
   const [error, setError] = useState<string | null>(null)
   const [downloadStatus, setDownloadStatus] = useState<"idle" | "success" | "error">("idle")
   const [downloadAllStatus, setDownloadAllStatus] = useState<"idle" | "success" | "error">("idle")
+  const [downloadedFiles, setDownloadedFiles] = useState<string[]>([])
+  const [showDownloaded, setShowDownloaded] = useState(false)
 
   const activeFile = files[activeFileIndex]
 
@@ -56,6 +58,8 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
         URL.revokeObjectURL(url)
       }, 100)
       setDownloadStatus("success")
+      const fileName = activeFile.originalName.replace(/\.csv$/i, `-row${selectedRowIndex + 1}.aio`)
+      setDownloadedFiles(prev => [...prev, fileName])
       setTimeout(() => setDownloadStatus("idle"), 3000)
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error"
@@ -89,6 +93,8 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
               document.body.removeChild(link)
               URL.revokeObjectURL(url)
             }, 100)
+            const aioFileName = file.originalName.replace(/\.csv$/i, ".aio")
+            setDownloadedFiles(prev => [...prev, aioFileName])
           } catch (innerErr) {
             const message = innerErr instanceof Error ? innerErr.message : "Unknown error"
             setError(`Download failed for ${file.originalName}: ${message}`)
@@ -124,7 +130,46 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
           <ArrowLeft className="h-4 w-4" />
           Upload more files
         </Button>
+        {downloadedFiles.length > 0 && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowDownloaded(!showDownloaded)}
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            View Downloaded ({downloadedFiles.length})
+          </Button>
+        )}
       </div>
+      
+      {showDownloaded && downloadedFiles.length > 0 && (
+        <Card className="bg-green-50 border-green-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center justify-between">
+              <span className="text-green-800">Downloaded Files (saved to your Downloads folder)</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setDownloadedFiles([])}
+                className="text-xs text-green-600 hover:text-green-800"
+              >
+                Clear list
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <ul className="text-sm space-y-1">
+              {downloadedFiles.map((fileName, idx) => (
+                <li key={idx} className="flex items-center gap-2 text-green-700">
+                  <Check className="h-3 w-3" />
+                  {fileName}
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       {files.length > 1 && (
         <div className="flex gap-2 flex-wrap">
