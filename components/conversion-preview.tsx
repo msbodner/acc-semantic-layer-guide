@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Download, Copy, Check, ArrowLeft, FileText, Package } from "lucide-react"
 import type { ConvertedFile } from "@/app/page"
 import { cn } from "@/lib/utils"
-import JSZip from "jszip"
 
 interface ConversionPreviewProps {
   files: ConvertedFile[]
@@ -21,6 +20,7 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
   const activeFile = files[activeFileIndex]
 
   const handleCopyAio = useCallback(async () => {
+    console.log("[v0] Copying AIO for row", selectedRowIndex)
     const content = activeFile.aioLines[selectedRowIndex]
     await navigator.clipboard.writeText(content)
     setCopied(true)
@@ -28,36 +28,46 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
   }, [activeFile, selectedRowIndex])
 
   const handleDownloadSelectedAio = useCallback(() => {
-    const content = activeFile.aioLines[selectedRowIndex] + "\n"
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = activeFile.originalName.replace(/\.csv$/i, `-row${selectedRowIndex + 1}.aio`)
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    console.log("[v0] Downloading selected AIO for row", selectedRowIndex)
+    try {
+      const content = activeFile.aioLines[selectedRowIndex] + "\n"
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = activeFile.originalName.replace(/\.csv$/i, `-row${selectedRowIndex + 1}.aio`)
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      console.log("[v0] Download triggered successfully")
+    } catch (error) {
+      console.error("[v0] Download error:", error)
+    }
   }, [activeFile, selectedRowIndex])
 
-  const handleDownloadAllZip = useCallback(async () => {
-    const zip = new JSZip()
-    
-    files.forEach((file) => {
-      const content = file.aioLines.join("\n") + "\n"
-      const filename = file.originalName.replace(/\.csv$/i, ".aio")
-      zip.file(filename, content)
-    })
-    
-    const blob = await zip.generateAsync({ type: "blob" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = "aio-files.zip"
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+  const handleDownloadAllAios = useCallback(() => {
+    console.log("[v0] Downloading all AIOs")
+    try {
+      // Download each file as a separate .aio file
+      files.forEach((file, index) => {
+        setTimeout(() => {
+          const content = file.aioLines.join("\n") + "\n"
+          const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement("a")
+          a.href = url
+          a.download = file.originalName.replace(/\.csv$/i, ".aio")
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          URL.revokeObjectURL(url)
+          console.log("[v0] Downloaded file:", file.originalName)
+        }, index * 200) // Stagger downloads to avoid browser blocking
+      })
+    } catch (error) {
+      console.error("[v0] Download all error:", error)
+    }
   }, [files])
 
   return (
@@ -98,7 +108,7 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
                   ({activeFile.csvData.length} rows)
                 </span>
               </CardTitle>
-              <Button onClick={handleDownloadAllZip} className="gap-2" size="sm">
+              <Button onClick={handleDownloadAllAios} className="gap-2" size="sm">
                 <Package className="h-4 w-4" />
                 Download All AIOs
               </Button>
