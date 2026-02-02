@@ -5,13 +5,12 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 
 export const metadata: Metadata = {
-  title: "ACC Semantic Layer Guide",
-  description:
-    "Build a semantic layer for Autodesk Construction Cloud data in Microsoft Fabric with Azure OpenAI integration",
+  title: "AIO Generator - Mock Data Generator",
+  description: "Generate mock data, test data, and sample datasets for development and testing",
 }
 
 export const viewport: Viewport = {
-  themeColor: "#0066cc",
+  themeColor: "#22c55e",
   width: "device-width",
   initialScale: 1,
 }
@@ -23,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased`}>{children}</body>
+      <body className={`${inter.variable} font-sans`}>{children}</body>
     </html>
   )
 }
