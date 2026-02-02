@@ -16,62 +16,98 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
   const [activeFileIndex, setActiveFileIndex] = useState(0)
   const [selectedRowIndex, setSelectedRowIndex] = useState(0)
   const [copied, setCopied] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const activeFile = files[activeFileIndex]
 
   const handleCopyAio = useCallback(async () => {
-    console.log("[v0] Copying AIO for row", selectedRowIndex)
-    const content = activeFile.aioLines[selectedRowIndex]
-    await navigator.clipboard.writeText(content)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    setError(null)
+    try {
+      const content = activeFile.aioLines[selectedRowIndex]
+      await navigator.clipboard.writeText(content)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to copy"
+      setError(`Copy failed: ${message}`)
+    }
   }, [activeFile, selectedRowIndex])
 
   const handleDownloadSelectedAio = useCallback(() => {
-    console.log("[v0] Downloading selected AIO for row", selectedRowIndex)
+    setError(null)
     try {
+      if (!activeFile || !activeFile.aioLines || !activeFile.aioLines[selectedRowIndex]) {
+        throw new Error("No AIO content available for selected row")
+      }
       const content = activeFile.aioLines[selectedRowIndex] + "\n"
       const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
       const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = activeFile.originalName.replace(/\.csv$/i, `-row${selectedRowIndex + 1}.aio`)
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-      console.log("[v0] Download triggered successfully")
-    } catch (error) {
-      console.error("[v0] Download error:", error)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = activeFile.originalName.replace(/\.csv$/i, `-row${selectedRowIndex + 1}.aio`)
+      link.style.display = "none"
+      document.body.appendChild(link)
+      link.click()
+      setTimeout(() => {
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+      }, 100)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error"
+      setError(`Download failed: ${message}`)
+      alert(`Download failed: ${message}`)
     }
   }, [activeFile, selectedRowIndex])
 
   const handleDownloadAllAios = useCallback(() => {
-    console.log("[v0] Downloading all AIOs")
+    setError(null)
     try {
+      if (!files || files.length === 0) {
+        throw new Error("No files to download")
+      }
       // Download each file as a separate .aio file
       files.forEach((file, index) => {
         setTimeout(() => {
-          const content = file.aioLines.join("\n") + "\n"
-          const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
-          const url = URL.createObjectURL(blob)
-          const a = document.createElement("a")
-          a.href = url
-          a.download = file.originalName.replace(/\.csv$/i, ".aio")
-          document.body.appendChild(a)
-          a.click()
-          document.body.removeChild(a)
-          URL.revokeObjectURL(url)
-          console.log("[v0] Downloaded file:", file.originalName)
-        }, index * 200) // Stagger downloads to avoid browser blocking
+          try {
+            const content = file.aioLines.join("\n") + "\n"
+            const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement("a")
+            link.href = url
+            link.download = file.originalName.replace(/\.csv$/i, ".aio")
+            link.style.display = "none"
+            document.body.appendChild(link)
+            link.click()
+            setTimeout(() => {
+              document.body.removeChild(link)
+              URL.revokeObjectURL(url)
+            }, 100)
+          } catch (innerErr) {
+            const message = innerErr instanceof Error ? innerErr.message : "Unknown error"
+            setError(`Download failed for ${file.originalName}: ${message}`)
+          }
+        }, index * 300) // Stagger downloads to avoid browser blocking
       })
-    } catch (error) {
-      console.error("[v0] Download all error:", error)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error"
+      setError(`Download all failed: ${message}`)
+      alert(`Download all failed: ${message}`)
     }
   }, [files])
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-lg">
+          <strong>Error:</strong> {error}
+          <button 
+            onClick={() => setError(null)} 
+            className="ml-4 underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={onClear} className="gap-2">
           <ArrowLeft className="h-4 w-4" />
