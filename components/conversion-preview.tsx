@@ -79,13 +79,18 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
       if (!files || files.length === 0) {
         throw new Error("No files to download")
       }
-      files.forEach((file, index) => {
-        setTimeout(() => {
-          const content = file.aioLines.join("\n") + "\n"
-          const aioFileName = file.originalName.replace(/\.csv$/i, ".aio")
-          triggerDownload(aioFileName, content)
-          setDownloadedFiles(prev => [...prev, aioFileName])
-        }, index * 300)
+      let counter = 0
+      files.forEach((file) => {
+        const baseName = file.originalName.replace(/\.csv$/i, "")
+        file.aioLines.forEach((line, rowIndex) => {
+          counter++
+          setTimeout(() => {
+            const content = line + "\n"
+            const aioFileName = `${baseName}_${String(counter).padStart(4, "0")}.aio`
+            triggerDownload(aioFileName, content)
+            setDownloadedFiles(prev => [...prev, aioFileName])
+          }, rowIndex * 150)
+        })
       })
       setDownloadAllStatus("success")
       setTimeout(() => setDownloadAllStatus("idle"), 3000)
