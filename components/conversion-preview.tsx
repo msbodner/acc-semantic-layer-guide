@@ -121,29 +121,17 @@ export function ConversionPreview({ files, onClear, onProcess }: ConversionPrevi
           <ArrowLeft className="h-4 w-4" />
           Upload more files
         </Button>
-        <div className="flex items-center gap-2">
-          {downloadedFiles.length > 0 && (
-            <>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setShowDownloaded(!showDownloaded)}
-                className="gap-2"
-              >
-                <Download className="h-4 w-4" />
-                View Downloaded ({downloadedFiles.length})
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => onProcess(downloadedFiles)}
-                className="gap-2 bg-amber-600 hover:bg-amber-700 text-white"
-              >
-                <Zap className="h-4 w-4" />
-                Process AIO Files via Hyper-Semantic Logic
-              </Button>
-            </>
-          )}
-        </div>
+        {downloadedFiles.length > 0 && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowDownloaded(!showDownloaded)}
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            View Downloaded ({downloadedFiles.length})
+          </Button>
+        )}
       </div>
       
       {showDownloaded && downloadedFiles.length > 0 && (
@@ -317,6 +305,17 @@ export function ConversionPreview({ files, onClear, onProcess }: ConversionPrevi
                 ))}
               </div>
             </div>
+            {downloadedFiles.length > 0 && (
+              <div className="mt-6 pt-4 border-t border-border">
+                <Button
+                  onClick={() => onProcess(downloadedFiles)}
+                  className="w-full gap-2 bg-amber-600 hover:bg-amber-700 text-white"
+                >
+                  <Zap className="h-4 w-4" />
+                  Process AIO Files via Hyper-Semantic Logic
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
