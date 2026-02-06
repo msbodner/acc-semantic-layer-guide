@@ -305,17 +305,25 @@ export function ConversionPreview({ files, onClear, onProcess }: ConversionPrevi
                 ))}
               </div>
             </div>
-            {downloadedFiles.length > 0 && (
-              <div className="mt-6 pt-4 border-t border-border">
-                <Button
-                  onClick={() => onProcess(downloadedFiles)}
-                  className="w-full gap-2 bg-amber-600 hover:bg-amber-700 text-white"
-                >
-                  <Zap className="h-4 w-4" />
-                  Process AIO Files via Hyper-Semantic Logic
-                </Button>
-              </div>
-            )}
+            <div className="mt-6 pt-4 border-t border-border">
+              <Button
+                onClick={() => {
+                  // Pass all AIO file names from converted files if no downloads tracked
+                  const fileNames = downloadedFiles.length > 0 
+                    ? downloadedFiles 
+                    : files.flatMap((f, fi) => 
+                        f.aioLines.map((_, ri) => 
+                          `${f.originalName.replace(/\.csv$/i, "")}_${String(fi * 1000 + ri + 1).padStart(4, "0")}.aio`
+                        )
+                      )
+                  onProcess(fileNames)
+                }}
+                className="w-full gap-2 bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                <Zap className="h-4 w-4" />
+                Process AIO Files via Hyper-Semantic Logic
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
