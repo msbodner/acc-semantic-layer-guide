@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Upload, MousePointerClick, Download, Eye, FileText, Table, ChevronRight } from "lucide-react"
+import { ArrowLeft, Upload, MousePointerClick, Download, Eye, FileText, Table, ChevronRight, Zap, Search } from "lucide-react"
 
 interface UserGuideProps {
   onBack: () => void
@@ -23,7 +23,7 @@ export function UserGuide({ onBack }: UserGuideProps) {
       <main className="container mx-auto px-4 py-12 max-w-4xl">
         <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">User Guide</h1>
         <p className="text-lg text-muted-foreground mb-10">
-          Learn how to convert CSV files into Associated Information Objects (AIOs)
+          Learn how to convert CSV files into Associated Information Objects (AIOs) and process them using Hyper-Semantic Logic
         </p>
 
         {/* Getting Started */}
@@ -167,6 +167,53 @@ export function UserGuide({ onBack }: UserGuideProps) {
                 </p>
               </CardContent>
             </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 text-lg">
+                  <span className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">5</span>
+                  <Zap className="h-5 w-5 text-amber-600" />
+                  Process AIO Files via Hyper-Semantic Logic
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-3">
+                  After converting your CSVs, click the amber <strong>"Process AIO Files via Hyper-Semantic Logic"</strong> button 
+                  in the AIO Output pane. This opens the Hyper-Semantic Logic Processor where you can explore relationships across your AIO data.
+                </p>
+                <p className="text-sm font-medium text-foreground mb-3">Using the Processor:</p>
+                <ul className="space-y-2 text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <ChevronRight className="h-4 w-4 mt-1 text-primary shrink-0" />
+                    <span>The left panel shows a <strong>list of all AIO files</strong> generated from your CSV data</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <ChevronRight className="h-4 w-4 mt-1 text-primary shrink-0" />
+                    <span><strong>Click any AIO file</strong> in the list to view its raw AIO text, displayed as individual clickable element chips</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <ChevronRight className="h-4 w-4 mt-1 text-primary shrink-0" />
+                    <span>Metadata elements (<code className="bg-secondary px-1.5 py-0.5 rounded text-xs">OriginalCSV</code>, <code className="bg-secondary px-1.5 py-0.5 rounded text-xs">FileDate</code>, <code className="bg-secondary px-1.5 py-0.5 rounded text-xs">FileTime</code>) are highlighted in the primary color</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <ChevronRight className="h-4 w-4 mt-1 text-primary shrink-0" />
+                    <span><strong>Click any element</strong> to search across all AIO files - the right panel will display a table of every AIO file that contains a matching element</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <ChevronRight className="h-4 w-4 mt-1 text-primary shrink-0" />
+                    <span>Click any matching AIO in the results table to jump to its raw view and continue exploring</span>
+                  </li>
+                </ul>
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-800">
+                    <strong>Hyper-Semantic Logic</strong> treats each AIO element as an application-agnostic information unit. 
+                    By clicking an element, you perform a semantic match across the entire AIO set - finding all objects that share 
+                    the same attribute-value pair regardless of their original source, row, or schema. This is the foundation of 
+                    schema-agnostic information retrieval.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
           </div>
         </section>
 
