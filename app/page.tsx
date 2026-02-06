@@ -226,8 +226,7 @@ export default function HomePage() {
               </div>
             </div>
             <p className="text-center text-sm text-muted-foreground mt-6 max-w-2xl mx-auto">
-              Each row of your CSV is transformed into a single-line AIO containing all column-value 
-              pairs in the format: <code className="bg-secondary px-1.5 py-0.5 rounded text-xs">[Column1.Value1][Column2.Value2]...</code>
+              Each row of your CSV is transformed into a single-line AIO prefixed with source metadata: <code className="bg-secondary px-1.5 py-0.5 rounded text-xs">[OriginalCSV.filename][FileDate.YYYY-MM-DD][FileTime.HH:MM:SS][Column1.Value1][Column2.Value2]...</code>
             </p>
           </div>
 
@@ -306,7 +305,7 @@ export default function HomePage() {
       <footer className="border-t border-border py-4 bg-card/50">
         <div className="container mx-auto px-4 max-w-5xl">
           <p className="text-sm text-muted-foreground text-center">
-            Each row becomes: [Column1.Value1][Column2.Value2]...
+            Each row becomes: [OriginalCSV.filename][FileDate.YYYY-MM-DD][FileTime.HH:MM:SS][Column1.Value1][Column2.Value2]...
           </p>
         </div>
       </footer>
