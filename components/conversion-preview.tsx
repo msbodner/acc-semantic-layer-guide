@@ -3,16 +3,17 @@
 import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Download, Copy, Check, ArrowLeft, FileText, Package } from "lucide-react"
+import { Download, Copy, Check, ArrowLeft, FileText, Package, Zap } from "lucide-react"
 import type { ConvertedFile } from "@/app/page"
 import { cn } from "@/lib/utils"
 
 interface ConversionPreviewProps {
   files: ConvertedFile[]
   onClear: () => void
+  onProcess: (downloadedFiles: string[]) => void
 }
 
-export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
+export function ConversionPreview({ files, onClear, onProcess }: ConversionPreviewProps) {
   const [activeFileIndex, setActiveFileIndex] = useState(0)
   const [selectedRowIndex, setSelectedRowIndex] = useState(0)
   const [copied, setCopied] = useState(false)
@@ -120,17 +121,29 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
           <ArrowLeft className="h-4 w-4" />
           Upload more files
         </Button>
-        {downloadedFiles.length > 0 && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setShowDownloaded(!showDownloaded)}
-            className="gap-2"
-          >
-            <Download className="h-4 w-4" />
-            View Downloaded ({downloadedFiles.length})
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {downloadedFiles.length > 0 && (
+            <>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowDownloaded(!showDownloaded)}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                View Downloaded ({downloadedFiles.length})
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => onProcess(downloadedFiles)}
+                className="gap-2 bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                <Zap className="h-4 w-4" />
+                Process AIO Files via Hyper-Semantic Logic
+              </Button>
+            </>
+          )}
+        </div>
       </div>
       
       {showDownloaded && downloadedFiles.length > 0 && (
@@ -285,6 +298,15 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
             <div className="mt-4 text-sm text-muted-foreground">
               <p className="font-medium mb-2">AIO Format Breakdown:</p>
               <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center px-2 py-1 rounded bg-primary/15 text-xs font-mono text-primary">
+                  [OriginalCSV.{activeFile.originalName}]
+                </span>
+                <span className="inline-flex items-center px-2 py-1 rounded bg-primary/15 text-xs font-mono text-primary">
+                  [FileDate.{activeFile.fileDate}]
+                </span>
+                <span className="inline-flex items-center px-2 py-1 rounded bg-primary/15 text-xs font-mono text-primary">
+                  [FileTime.{activeFile.fileTime}]
+                </span>
                 {activeFile.headers.map((header, idx) => (
                   <span 
                     key={header} 

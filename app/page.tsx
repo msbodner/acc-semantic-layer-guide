@@ -5,7 +5,8 @@ import { FileUpload } from "@/components/file-upload"
 import { ConversionPreview } from "@/components/conversion-preview"
 import { UserGuide } from "@/components/user-guide"
 import { ReferencePage } from "@/components/reference-page"
-import { Database, ArrowRight, Layers, Cpu, Globe, BookOpen, FileText } from "lucide-react"
+import { SemanticProcessor } from "@/components/semantic-processor"
+import { Database, ArrowRight, Layers, Cpu, Globe, BookOpen, FileText, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export interface ConvertedFile {
@@ -69,7 +70,8 @@ function parseCSV(text: string): { headers: string[]; rows: string[][] } {
 }
 
 export default function HomePage() {
-  const [currentView, setCurrentView] = useState<"home" | "converter" | "guide" | "reference">("home")
+  const [currentView, setCurrentView] = useState<"home" | "converter" | "guide" | "reference" | "processor">("home")
+  const [downloadedFileNames, setDownloadedFileNames] = useState<string[]>([])
   const [convertedFiles, setConvertedFiles] = useState<ConvertedFile[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
 
@@ -118,6 +120,16 @@ export default function HomePage() {
 
   if (currentView === "reference") {
     return <ReferencePage onBack={() => setCurrentView("home")} />
+  }
+
+  if (currentView === "processor") {
+    return (
+      <SemanticProcessor 
+        files={convertedFiles} 
+        downloadedFiles={downloadedFileNames} 
+        onBack={() => setCurrentView("converter")} 
+      />
+    )
   }
 
   if (currentView === "home") {
@@ -298,7 +310,14 @@ export default function HomePage() {
         {convertedFiles.length === 0 ? (
           <FileUpload onFilesSelected={handleFilesSelected} isProcessing={isProcessing} />
         ) : (
-          <ConversionPreview files={convertedFiles} onClear={handleClear} />
+          <ConversionPreview 
+            files={convertedFiles} 
+            onClear={handleClear} 
+            onProcess={(downloaded) => {
+              setDownloadedFileNames(downloaded)
+              setCurrentView("processor")
+            }}
+          />
         )}
       </main>
 
