@@ -3,7 +3,9 @@
 import { useState, useCallback } from "react"
 import { FileUpload } from "@/components/file-upload"
 import { ConversionPreview } from "@/components/conversion-preview"
-import { Database, ArrowRight, Layers, Cpu, Globe } from "lucide-react"
+import { UserGuide } from "@/components/user-guide"
+import { ReferencePage } from "@/components/reference-page"
+import { Database, ArrowRight, Layers, Cpu, Globe, BookOpen, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export interface ConvertedFile {
@@ -67,7 +69,7 @@ function parseCSV(text: string): { headers: string[]; rows: string[][] } {
 }
 
 export default function HomePage() {
-  const [showConverter, setShowConverter] = useState(false)
+  const [currentView, setCurrentView] = useState<"home" | "converter" | "guide" | "reference">("home")
   const [convertedFiles, setConvertedFiles] = useState<ConvertedFile[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
 
@@ -110,7 +112,15 @@ export default function HomePage() {
     setConvertedFiles([])
   }, [])
 
-  if (!showConverter) {
+  if (currentView === "guide") {
+    return <UserGuide onBack={() => setCurrentView("home")} />
+  }
+
+  if (currentView === "reference") {
+    return <ReferencePage onBack={() => setCurrentView("home")} />
+  }
+
+  if (currentView === "home") {
     return (
       <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-secondary/30">
         {/* Header */}
@@ -222,15 +232,33 @@ export default function HomePage() {
           </div>
 
           {/* CTA */}
-          <div className="text-center">
+          <div className="flex flex-col items-center gap-4">
             <Button 
               size="lg" 
-              onClick={() => setShowConverter(true)}
+              onClick={() => setCurrentView("converter")}
               className="gap-2 px-8"
             >
               Start Converting
               <ArrowRight className="h-4 w-4" />
             </Button>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setCurrentView("guide")}
+                className="gap-2"
+              >
+                <BookOpen className="h-4 w-4" />
+                User Guide
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setCurrentView("reference")}
+                className="gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                Information Physics Reference
+              </Button>
+            </div>
           </div>
         </main>
 
@@ -252,7 +280,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-4 max-w-5xl">
           <div className="flex items-center justify-between">
             <button 
-              onClick={() => { setShowConverter(false); handleClear(); }}
+              onClick={() => { setCurrentView("home"); handleClear(); }}
               className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             >
               <div className="p-2 rounded-lg bg-primary text-primary-foreground">
