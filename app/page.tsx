@@ -11,10 +11,17 @@ export interface ConvertedFile {
   csvData: string[][]
   headers: string[]
   aioLines: string[]
+  fileDate: string
+  fileTime: string
 }
 
-function csvToAio(headers: string[], row: string[]): string {
+function csvToAio(headers: string[], row: string[], originalFileName: string, fileDate: string, fileTime: string): string {
   const parts: string[] = []
+  // Add metadata elements first
+  parts.push(`[OriginalCSV.${originalFileName}]`)
+  parts.push(`[FileDate.${fileDate}]`)
+  parts.push(`[FileTime.${fileTime}]`)
+  // Add data elements
   for (let i = 0; i < headers.length; i++) {
     const key = headers[i]
     let val = row[i] ?? ""
@@ -75,13 +82,20 @@ export default function HomePage() {
 
         if (headers.length === 0) continue
 
-        const aioLines = rows.map((row) => csvToAio(headers, row))
+        // Get file date and time from the file's lastModified timestamp
+        const fileTimestamp = new Date(file.lastModified)
+        const fileDate = fileTimestamp.toISOString().split("T")[0]
+        const fileTime = fileTimestamp.toTimeString().split(" ")[0]
+
+        const aioLines = rows.map((row) => csvToAio(headers, row, file.name, fileDate, fileTime))
 
         results.push({
           originalName: file.name,
           csvData: rows,
           headers,
           aioLines,
+          fileDate,
+          fileTime,
         })
       } catch (error) {
         console.error(`Error processing ${file.name}:`, error)

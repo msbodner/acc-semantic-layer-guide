@@ -37,7 +37,18 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
     }
   }, [activeFile, selectedRowIndex])
 
-  const handleDownloadSelectedAio = useCallback(() => {
+  const saveToServer = useCallback(async (fileName: string, content: string): Promise<string> => {
+    const res = await fetch("/api/save-aio", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fileName, content }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || "Failed to save")
+    return data.path
+  }, [])
+
+  const handleDownloadSelectedAio = useCallback(async () => {
     setError(null)
     setDownloadStatus("idle")
     try {
@@ -47,21 +58,11 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
       const content = activeFile.aioLines[selectedRowIndex] + "\n"
       const fileName = activeFile.originalName.replace(/\.csv$/i, `-row${selectedRowIndex + 1}.aio`)
       
-      // Use data URL approach for better sandbox compatibility
-      const dataUrl = "data:text/plain;charset=utf-8," + encodeURIComponent(content)
-      const link = document.createElement("a")
-      link.href = dataUrl
-      link.download = fileName
-      link.target = "_blank"
-      link.rel = "noopener noreferrer"
-      
-      // Try to trigger download
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      // Save to server downloads/aiofiles directory
+      const savedPath = await saveToServer(fileName, content)
       
       setDownloadStatus("success")
-      setDownloadedFiles(prev => [...prev, fileName])
+      setDownloadedFiles(prev => [...prev, `${fileName} -> ${savedPath}`])
       setTimeout(() => setDownloadStatus("idle"), 3000)
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error"
@@ -69,42 +70,22 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
       setDownloadStatus("error")
       setTimeout(() => setDownloadStatus("idle"), 5000)
     }
-  }, [activeFile, selectedRowIndex])
+  }, [activeFile, selectedRowIndex, saveToServer])
 
-  const handleDownloadAllAios = useCallback(() => {
+  const handleDownloadAllAios = useCallback(async () => {
     setError(null)
     setDownloadAllStatus("idle")
     try {
       if (!files || files.length === 0) {
         throw new Error("No files to download")
       }
-      // Download each file as a separate .aio file
-      files.forEach((file, index) => {
-        setTimeout(() => {
-          try {
-            const content = file.aioLines.join("\n") + "\n"
-            const aioFileName = file.originalName.replace(/\.csv$/i, ".aio")
-            
-            // Use data URL approach for better sandbox compatibility
-            const dataUrl = "data:text/plain;charset=utf-8," + encodeURIComponent(content)
-            const link = document.createElement("a")
-            link.href = dataUrl
-            link.download = aioFileName
-            link.target = "_blank"
-            link.rel = "noopener noreferrer"
-            
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
-            
-            setDownloadedFiles(prev => [...prev, aioFileName])
-          } catch (innerErr) {
-            const message = innerErr instanceof Error ? innerErr.message : "Unknown error"
-            setError(`Download failed for ${file.originalName}: ${message}`)
-            setDownloadAllStatus("error")
-          }
-        }, index * 500) // Stagger downloads to avoid browser blocking
-      })
+      // Save each file to downloads/aiofiles on server
+      for (const file of files) {
+        const content = file.aioLines.join("\n") + "\n"
+        const aioFileName = file.originalName.replace(/\.csv$/i, ".aio")
+        const savedPath = await saveToServer(aioFileName, content)
+        setDownloadedFiles(prev => [...prev, `${aioFileName} -> ${savedPath}`])
+      }
       setDownloadAllStatus("success")
       setTimeout(() => setDownloadAllStatus("idle"), 3000)
     } catch (err) {
@@ -113,7 +94,7 @@ export function ConversionPreview({ files, onClear }: ConversionPreviewProps) {
       setDownloadAllStatus("error")
       setTimeout(() => setDownloadAllStatus("idle"), 5000)
     }
-  }, [files])
+  }, [files, saveToServer])
 
   return (
     <div className="space-y-6">
