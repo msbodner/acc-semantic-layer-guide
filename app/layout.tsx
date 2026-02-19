@@ -1,3 +1,4 @@
+/* AIO Generator - Clean rebuild 2026-02-19 */
 import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
@@ -6,7 +7,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 
 export const metadata: Metadata = {
   title: "AIO Generator - CSV to AIO Converter",
-  description: "Convert CSV files to Associated Information Object (.aio) format",
+  description: "Convert CSV files to Associated Information Object (.aio) format by AWC Technology LLC",
 }
 
 export const viewport: Viewport = {
