@@ -1,4 +1,4 @@
-// AIO Generator - AWC Technology LLC
+/* AIO Generator - Clean rebuild 2026-02-19 */
 import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
