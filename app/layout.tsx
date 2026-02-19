@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 
 export const metadata: Metadata = {
   title: "AIO Generator - CSV to AIO Converter",
-  description: "Convert CSV files to Associated Information Object (.aio) format",
+  description: "Convert CSV files to Associated Information Object (.aio) format by AWC Technology LLC",
 }
 
 export const viewport: Viewport = {
