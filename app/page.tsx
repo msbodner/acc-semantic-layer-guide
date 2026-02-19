@@ -3,7 +3,10 @@
 import { useState, useCallback } from "react"
 import { FileUpload } from "@/components/file-upload"
 import { ConversionPreview } from "@/components/conversion-preview"
-import { Database, ArrowRight, Layers, Cpu, Globe } from "lucide-react"
+import { UserGuide } from "@/components/user-guide"
+import { ReferencePage } from "@/components/reference-page"
+import { SemanticProcessor } from "@/components/semantic-processor"
+import { Database, ArrowRight, Layers, Cpu, Globe, BookOpen, FileText, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export interface ConvertedFile {
@@ -11,10 +14,17 @@ export interface ConvertedFile {
   csvData: string[][]
   headers: string[]
   aioLines: string[]
+  fileDate: string
+  fileTime: string
 }
 
-function csvToAio(headers: string[], row: string[]): string {
+function csvToAio(headers: string[], row: string[], originalFileName: string, fileDate: string, fileTime: string): string {
   const parts: string[] = []
+  // Add metadata elements first
+  parts.push(`[OriginalCSV.${originalFileName}]`)
+  parts.push(`[FileDate.${fileDate}]`)
+  parts.push(`[FileTime.${fileTime}]`)
+  // Add data elements
   for (let i = 0; i < headers.length; i++) {
     const key = headers[i]
     let val = row[i] ?? ""
@@ -60,7 +70,8 @@ function parseCSV(text: string): { headers: string[]; rows: string[][] } {
 }
 
 export default function HomePage() {
-  const [showConverter, setShowConverter] = useState(false)
+  const [currentView, setCurrentView] = useState<"home" | "converter" | "guide" | "reference" | "processor">("home")
+  const [downloadedFileNames, setDownloadedFileNames] = useState<string[]>([])
   const [convertedFiles, setConvertedFiles] = useState<ConvertedFile[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
 
@@ -75,13 +86,20 @@ export default function HomePage() {
 
         if (headers.length === 0) continue
 
-        const aioLines = rows.map((row) => csvToAio(headers, row))
+        // Get file date and time from the file's lastModified timestamp
+        const fileTimestamp = new Date(file.lastModified)
+        const fileDate = fileTimestamp.toISOString().split("T")[0]
+        const fileTime = fileTimestamp.toTimeString().split(" ")[0]
+
+        const aioLines = rows.map((row) => csvToAio(headers, row, file.name, fileDate, fileTime))
 
         results.push({
           originalName: file.name,
           csvData: rows,
           headers,
           aioLines,
+          fileDate,
+          fileTime,
         })
       } catch (error) {
         console.error(`Error processing ${file.name}:`, error)
@@ -96,7 +114,25 @@ export default function HomePage() {
     setConvertedFiles([])
   }, [])
 
-  if (!showConverter) {
+  if (currentView === "guide") {
+    return <UserGuide onBack={() => setCurrentView("home")} />
+  }
+
+  if (currentView === "reference") {
+    return <ReferencePage onBack={() => setCurrentView("home")} />
+  }
+
+  if (currentView === "processor") {
+    return (
+      <SemanticProcessor 
+        files={convertedFiles} 
+        downloadedFiles={downloadedFileNames} 
+        onBack={() => setCurrentView("converter")} 
+      />
+    )
+  }
+
+  if (currentView === "home") {
     return (
       <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-secondary/30">
         {/* Header */}
@@ -202,21 +238,38 @@ export default function HomePage() {
               </div>
             </div>
             <p className="text-center text-sm text-muted-foreground mt-6 max-w-2xl mx-auto">
-              Each row of your CSV is transformed into a single-line AIO containing all column-value 
-              pairs in the format: <code className="bg-secondary px-1.5 py-0.5 rounded text-xs">[Column1.Value1][Column2.Value2]...</code>
+              Each row of your CSV is transformed into a single-line AIO prefixed with source metadata: <code className="bg-secondary px-1.5 py-0.5 rounded text-xs">[OriginalCSV.filename][FileDate.YYYY-MM-DD][FileTime.HH:MM:SS][Column1.Value1][Column2.Value2]...</code>
             </p>
           </div>
 
           {/* CTA */}
-          <div className="text-center">
+          <div className="flex flex-col items-center gap-4">
             <Button 
               size="lg" 
-              onClick={() => setShowConverter(true)}
+              onClick={() => setCurrentView("converter")}
               className="gap-2 px-8"
             >
               Start Converting
               <ArrowRight className="h-4 w-4" />
             </Button>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setCurrentView("guide")}
+                className="gap-2"
+              >
+                <BookOpen className="h-4 w-4" />
+                User Guide
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setCurrentView("reference")}
+                className="gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                Information Physics Reference
+              </Button>
+            </div>
           </div>
         </main>
 
@@ -238,7 +291,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-4 max-w-5xl">
           <div className="flex items-center justify-between">
             <button 
-              onClick={() => { setShowConverter(false); handleClear(); }}
+              onClick={() => { setCurrentView("home"); handleClear(); }}
               className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             >
               <div className="p-2 rounded-lg bg-primary text-primary-foreground">
@@ -257,14 +310,21 @@ export default function HomePage() {
         {convertedFiles.length === 0 ? (
           <FileUpload onFilesSelected={handleFilesSelected} isProcessing={isProcessing} />
         ) : (
-          <ConversionPreview files={convertedFiles} onClear={handleClear} />
+          <ConversionPreview 
+            files={convertedFiles} 
+            onClear={handleClear} 
+            onProcess={(downloaded) => {
+              setDownloadedFileNames(downloaded)
+              setCurrentView("processor")
+            }}
+          />
         )}
       </main>
 
       <footer className="border-t border-border py-4 bg-card/50">
         <div className="container mx-auto px-4 max-w-5xl">
           <p className="text-sm text-muted-foreground text-center">
-            Each row becomes: [Column1.Value1][Column2.Value2]...
+            Each row becomes: [OriginalCSV.filename][FileDate.YYYY-MM-DD][FileTime.HH:MM:SS][Column1.Value1][Column2.Value2]...
           </p>
         </div>
       </footer>
