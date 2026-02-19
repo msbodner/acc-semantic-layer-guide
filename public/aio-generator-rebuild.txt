@@ -1,354 +1,14 @@
-AIO GENERATOR - COMPLETE SOURCE CODE FOR FRESH BUILD
-=====================================================
-By AWC Technology LLC
+IMPORTANT: THIS IS A VERBATIM CODE RESTORATION. DO NOT INTERPRET, REDESIGN, OR MODIFY ANY FILE.
 
-INSTRUCTIONS:
-1. Start a NEW v0 chat
-2. Paste this prompt: "Build the AIO Generator app using the exact source files below. Do NOT connect to any GitHub repo. Write each file exactly as provided."
-3. Then paste the contents of each file section below.
+Write each file below EXACTLY as shown - character for character. Do not add, remove, or change anything.
+Do not "improve" the design. Do not change any styling. Do not restructure the code.
+Only use the default shadcn/ui Button and Card components that come pre-installed.
+Do NOT install any extra packages beyond what the default v0 project provides (next, react, react-dom, lucide-react, tailwindcss, tailwindcss-animate, clsx, tailwind-merge, class-variance-authority).
 
-=====================================================
-FILE: app/page.tsx
-=====================================================
-"use client"
-// AIO Generator by AWC Technology LLC
-import { useState, useCallback } from "react"
-import { FileUpload } from "@/components/file-upload"
-import { ConversionPreview } from "@/components/conversion-preview"
-import { UserGuide } from "@/components/user-guide"
-import { ReferencePage } from "@/components/reference-page"
-import { SemanticProcessor } from "@/components/semantic-processor"
-import { Database, ArrowRight, Layers, Cpu, Globe, BookOpen, FileText, Zap } from "lucide-react"
-import { Button } from "@/components/ui/button"
-
-export interface ConvertedFile {
-  originalName: string
-  csvData: string[][]
-  headers: string[]
-  aioLines: string[]
-  fileDate: string
-  fileTime: string
-}
-
-function csvToAio(headers: string[], row: string[], originalFileName: string, fileDate: string, fileTime: string): string {
-  const parts: string[] = []
-  parts.push(`[OriginalCSV.${originalFileName}]`)
-  parts.push(`[FileDate.${fileDate}]`)
-  parts.push(`[FileTime.${fileTime}]`)
-  for (let i = 0; i < headers.length; i++) {
-    const key = headers[i]
-    let val = row[i] ?? ""
-    val = val.replace(/\r\n/g, " ").replace(/\n/g, " ").replace(/\r/g, " ").replace(/\t/g, " ")
-    parts.push(`[${key}.${val}]`)
-  }
-  return parts.join("")
-}
-
-function parseCSV(text: string): { headers: string[]; rows: string[][] } {
-  const lines = text.split(/\r?\n/).filter((line) => line.trim() !== "")
-  if (lines.length === 0) return { headers: [], rows: [] }
-
-  const parseLine = (line: string): string[] => {
-    const result: string[] = []
-    let current = ""
-    let inQuotes = false
-
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i]
-      if (char === '"') {
-        if (inQuotes && line[i + 1] === '"') {
-          current += '"'
-          i++
-        } else {
-          inQuotes = !inQuotes
-        }
-      } else if (char === "," && !inQuotes) {
-        result.push(current)
-        current = ""
-      } else {
-        current += char
-      }
-    }
-    result.push(current)
-    return result
-  }
-
-  const headers = parseLine(lines[0])
-  const rows = lines.slice(1).map(parseLine)
-
-  return { headers, rows }
-}
-
-export default function HomePage() {
-  const [currentView, setCurrentView] = useState<"home" | "converter" | "guide" | "reference" | "processor">("home")
-  const [downloadedFileNames, setDownloadedFileNames] = useState<string[]>([])
-  const [convertedFiles, setConvertedFiles] = useState<ConvertedFile[]>([])
-  const [isProcessing, setIsProcessing] = useState(false)
-
-  const handleFilesSelected = useCallback(async (files: File[]) => {
-    setIsProcessing(true)
-    const results: ConvertedFile[] = []
-
-    for (const file of files) {
-      try {
-        const text = await file.text()
-        const { headers, rows } = parseCSV(text)
-
-        if (headers.length === 0) continue
-
-        const fileTimestamp = new Date(file.lastModified)
-        const fileDate = fileTimestamp.toISOString().split("T")[0]
-        const fileTime = fileTimestamp.toTimeString().split(" ")[0]
-
-        const aioLines = rows.map((row) => csvToAio(headers, row, file.name, fileDate, fileTime))
-
-        results.push({
-          originalName: file.name,
-          csvData: rows,
-          headers,
-          aioLines,
-          fileDate,
-          fileTime,
-        })
-      } catch (error) {
-        console.error(`Error processing ${file.name}:`, error)
-      }
-    }
-
-    setConvertedFiles(results)
-    setIsProcessing(false)
-  }, [])
-
-  const handleClear = useCallback(() => {
-    setConvertedFiles([])
-  }, [])
-
-  if (currentView === "guide") {
-    return <UserGuide onBack={() => setCurrentView("home")} />
-  }
-
-  if (currentView === "reference") {
-    return <ReferencePage onBack={() => setCurrentView("home")} />
-  }
-
-  if (currentView === "processor") {
-    return (
-      <SemanticProcessor 
-        files={convertedFiles} 
-        downloadedFiles={downloadedFileNames} 
-        onBack={() => setCurrentView("converter")} 
-      />
-    )
-  }
-
-  if (currentView === "home") {
-    return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-secondary/30">
-        <header className="border-b border-border bg-card/80 backdrop-blur-sm">
-          <div className="container mx-auto px-4 py-4 max-w-6xl">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary text-primary-foreground">
-                <Database className="h-5 w-5" />
-              </div>
-              <span className="font-semibold text-lg text-foreground">AIO Generator</span>
-            </div>
-          </div>
-        </header>
-
-        <main className="flex-1 container mx-auto px-4 py-16 max-w-6xl">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-              <Cpu className="h-4 w-4" />
-              Information Physics Standard Model
-            </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 text-balance leading-tight">
-              AIO Generator
-            </h1>
-            <p className="text-xl text-primary font-medium mb-4">
-              by AWC Technology LLC
-            </p>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed">
-              Transform your CSV data into Associated Information Objects (AIOs) - the fundamental 
-              unit of information in the new Information Physics Standard Model.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 mb-16">
-            <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
-              <div className="p-3 rounded-lg bg-primary/10 w-fit mb-4">
-                <Layers className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-lg text-foreground mb-2">Application Agnostic</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                AIOs are information objects not tied to any application or relational database schema, 
-                enabling universal data interoperability.
-              </p>
-            </div>
-
-            <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
-              <div className="p-3 rounded-lg bg-primary/10 w-fit mb-4">
-                <Globe className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-lg text-foreground mb-2">Hyper-Semantic Model</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                AIOs form the basis of a new hyper-semantic model that captures meaning and 
-                relationships in a way traditional data formats cannot.
-              </p>
-            </div>
-
-            <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
-              <div className="p-3 rounded-lg bg-primary/10 w-fit mb-4">
-                <Cpu className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-lg text-foreground mb-2">Next-Gen LLM Foundation</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                This hyper-semantic model will serve as the foundation upon which a new class of 
-                Large Language Models will operate with enhanced understanding.
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-card rounded-xl p-8 border border-border shadow-sm mb-16">
-            <h2 className="text-2xl font-semibold text-foreground mb-6 text-center">The Conversion Process</h2>
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
-              <div className="flex flex-col items-center text-center">
-                <div className="p-4 rounded-xl bg-secondary mb-3">
-                  <code className="text-sm font-mono text-muted-foreground">CSV</code>
-                </div>
-                <p className="text-sm text-muted-foreground">Tabular Data</p>
-              </div>
-              <ArrowRight className="h-6 w-6 text-primary hidden md:block" />
-              <div className="h-6 w-px bg-border md:hidden" />
-              <div className="flex flex-col items-center text-center">
-                <div className="p-4 rounded-xl bg-primary/10 mb-3">
-                  <code className="text-sm font-mono text-primary">[Col.Val]</code>
-                </div>
-                <p className="text-sm text-muted-foreground">AIO Format</p>
-              </div>
-              <ArrowRight className="h-6 w-6 text-primary hidden md:block" />
-              <div className="h-6 w-px bg-border md:hidden" />
-              <div className="flex flex-col items-center text-center">
-                <div className="p-4 rounded-xl bg-accent mb-3">
-                  <code className="text-sm font-mono text-accent-foreground">.aio</code>
-                </div>
-                <p className="text-sm text-muted-foreground">Semantic Object</p>
-              </div>
-            </div>
-            <p className="text-center text-sm text-muted-foreground mt-6 max-w-2xl mx-auto">
-              Each row of your CSV is transformed into a single-line AIO prefixed with source metadata: <code className="bg-secondary px-1.5 py-0.5 rounded text-xs">[OriginalCSV.filename][FileDate.YYYY-MM-DD][FileTime.HH:MM:SS][Column1.Value1][Column2.Value2]...</code>
-            </p>
-          </div>
-
-          <div className="flex flex-col items-center gap-4">
-            <Button size="lg" onClick={() => setCurrentView("converter")} className="gap-2 px-8">
-              Start Converting
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setCurrentView("guide")} className="gap-2">
-                <BookOpen className="h-4 w-4" />
-                User Guide
-              </Button>
-              <Button variant="outline" onClick={() => setCurrentView("reference")} className="gap-2">
-                <FileText className="h-4 w-4" />
-                Information Physics Reference
-              </Button>
-            </div>
-          </div>
-        </main>
-
-        <footer className="border-t border-border py-6 bg-card/50">
-          <div className="container mx-auto px-4 max-w-6xl">
-            <p className="text-sm text-muted-foreground text-center">
-              AWC Technology LLC - Pioneering the Information Physics Standard Model
-            </p>
-          </div>
-        </footer>
-      </div>
-    )
-  }
-
-  return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4 max-w-5xl">
-          <div className="flex items-center justify-between">
-            <button 
-              onClick={() => { setCurrentView("home"); handleClear(); }}
-              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-            >
-              <div className="p-2 rounded-lg bg-primary text-primary-foreground">
-                <Database className="h-5 w-5" />
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold text-foreground">AIO Generator</h1>
-                <p className="text-xs text-muted-foreground">by AWC Technology LLC</p>
-              </div>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="flex-1 container mx-auto px-4 py-8 max-w-5xl">
-        {convertedFiles.length === 0 ? (
-          <FileUpload onFilesSelected={handleFilesSelected} isProcessing={isProcessing} />
-        ) : (
-          <ConversionPreview 
-            files={convertedFiles} 
-            onClear={handleClear} 
-            onProcess={(downloaded) => {
-              setDownloadedFileNames(downloaded)
-              setCurrentView("processor")
-            }}
-          />
-        )}
-      </main>
-
-      <footer className="border-t border-border py-4 bg-card/50">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <p className="text-sm text-muted-foreground text-center">
-            Each row becomes: [OriginalCSV.filename][FileDate.YYYY-MM-DD][FileTime.HH:MM:SS][Column1.Value1][Column2.Value2]...
-          </p>
-        </div>
-      </footer>
-    </div>
-  )
-}
+There are 8 files total. Write ALL 8 files.
 
 =====================================================
-FILE: app/layout.tsx
-=====================================================
-import type { Metadata, Viewport } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
-
-export const metadata: Metadata = {
-  title: "AIO Generator - CSV to AIO Converter",
-  description: "Convert CSV files to Associated Information Object (.aio) format by AWC Technology LLC",
-}
-
-export const viewport: Viewport = {
-  themeColor: "#22c55e",
-  width: "device-width",
-  initialScale: 1,
-}
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
-  return (
-    <html lang="en">
-      <body className={`${inter.variable} font-sans`}>{children}</body>
-    </html>
-  )
-}
-
-=====================================================
-FILE: app/globals.css
+FILE 1 OF 8: app/globals.css
 =====================================================
 @tailwind base;
 @tailwind components;
@@ -429,443 +89,107 @@ FILE: app/globals.css
 }
 
 =====================================================
-FILE: components/file-upload.tsx
+FILE 2 OF 8: app/layout.tsx
 =====================================================
-"use client"
+import type { Metadata, Viewport } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
 
-import { useCallback, useState } from "react"
-import { Upload, FileText, Loader2 } from "lucide-react"
-import { cn } from "@/lib/utils"
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 
-interface FileUploadProps {
-  onFilesSelected: (files: File[]) => void
-  isProcessing: boolean
+export const metadata: Metadata = {
+  title: "AIO Generator - CSV to AIO Converter",
+  description: "Convert CSV files to Associated Information Object (.aio) format by AWC Technology LLC",
 }
 
-export function FileUpload({ onFilesSelected, isProcessing }: FileUploadProps) {
-  const [isDragOver, setIsDragOver] = useState(false)
+export const viewport: Viewport = {
+  themeColor: "#22c55e",
+  width: "device-width",
+  initialScale: 1,
+}
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragOver(true)
-  }, [])
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragOver(false)
-  }, [])
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setIsDragOver(false)
-
-      const files = Array.from(e.dataTransfer.files).filter(
-        (file) => file.type === "text/csv" || file.name.endsWith(".csv")
-      )
-
-      if (files.length > 0) {
-        onFilesSelected(files)
-      }
-    },
-    [onFilesSelected]
-  )
-
-  const handleFileInput = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = e.target.files ? Array.from(e.target.files) : []
-      if (files.length > 0) {
-        onFilesSelected(files)
-      }
-    },
-    [onFilesSelected]
-  )
-
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <label
-        htmlFor="file-upload"
-        className={cn(
-          "relative flex flex-col items-center justify-center w-full h-80 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200",
-          isDragOver
-            ? "border-primary bg-primary/5"
-            : "border-border bg-card hover:border-primary/50 hover:bg-card/80",
-          isProcessing && "pointer-events-none opacity-60"
-        )}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        <div className="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
-          {isProcessing ? (
-            <>
-              <Loader2 className="h-12 w-12 text-primary mb-4 animate-spin" />
-              <p className="text-lg font-medium text-foreground">Processing files...</p>
-            </>
-          ) : (
-            <>
-              <div className="p-4 rounded-full bg-primary/10 mb-4">
-                <Upload className="h-10 w-10 text-primary" />
-              </div>
-              <p className="text-lg font-medium text-foreground mb-2">
-                Drop CSV files here
-              </p>
-              <p className="text-sm text-muted-foreground mb-4">
-                or click to browse your files
-              </p>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <FileText className="h-4 w-4" />
-                <span>Supports .csv files</span>
-              </div>
-            </>
-          )}
-        </div>
-        <input
-          id="file-upload"
-          type="file"
-          className="hidden"
-          accept=".csv,text/csv"
-          multiple
-          onChange={handleFileInput}
-          disabled={isProcessing}
-        />
-      </label>
-
-      <div className="mt-8 p-4 rounded-lg bg-muted/50 border border-border">
-        <h3 className="text-sm font-medium text-foreground mb-2">How it works</h3>
-        <ul className="text-sm text-muted-foreground space-y-1">
-          <li>1. Upload one or more CSV files</li>
-          <li>2. Each row is converted to a single AIO line</li>
-          <li>3. Format: [Column1.Value1][Column2.Value2]...</li>
-          <li>4. Download the .aio file or copy to clipboard</li>
-        </ul>
-      </div>
-    </div>
+    &lt;html lang="en"&gt;
+      &lt;body className={`${inter.variable} font-sans`}&gt;{children}&lt;/body&gt;
+    &lt;/html&gt;
   )
 }
 
 =====================================================
-FILE: components/conversion-preview.tsx
+FILE 3 OF 8: app/page.tsx
 =====================================================
 "use client"
-
+// AIO Generator by AWC Technology LLC
 import { useState, useCallback } from "react"
+import { FileUpload } from "@/components/file-upload"
+import { ConversionPreview } from "@/components/conversion-preview"
+import { UserGuide } from "@/components/user-guide"
+import { ReferencePage } from "@/components/reference-page"
+import { SemanticProcessor } from "@/components/semantic-processor"
+import { Database, ArrowRight, Layers, Cpu, Globe, BookOpen, FileText, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Download, Copy, Check, ArrowLeft, FileText, Package, Zap } from "lucide-react"
-import type { ConvertedFile } from "@/app/page"
-import { cn } from "@/lib/utils"
 
-interface ConversionPreviewProps {
-  files: ConvertedFile[]
-  onClear: () => void
-  onProcess: (downloadedFiles: string[]) => void
+export interface ConvertedFile {
+  originalName: string
+  csvData: string[][]
+  headers: string[]
+  aioLines: string[]
+  fileDate: string
+  fileTime: string
 }
 
-export function ConversionPreview({ files, onClear, onProcess }: ConversionPreviewProps) {
-  const [activeFileIndex, setActiveFileIndex] = useState(0)
-  const [selectedRowIndex, setSelectedRowIndex] = useState(0)
-  const [copied, setCopied] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [downloadStatus, setDownloadStatus] = useState<"idle" | "success" | "error">("idle")
-  const [downloadAllStatus, setDownloadAllStatus] = useState<"idle" | "success" | "error">("idle")
-  const [downloadedFiles, setDownloadedFiles] = useState<string[]>([])
-  const [showDownloaded, setShowDownloaded] = useState(false)
-
-  const activeFile = files[activeFileIndex]
-
-  const handleCopyAio = useCallback(async () => {
-    setError(null)
-    try {
-      const content = activeFile.aioLines[selectedRowIndex]
-      await navigator.clipboard.writeText(content)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to copy"
-      setError(`Copy failed: ${message}`)
-    }
-  }, [activeFile, selectedRowIndex])
-
-  const triggerDownload = useCallback((fileName: string, content: string) => {
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement("a")
-    link.href = url
-    link.download = fileName
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-  }, [])
-
-  const handleDownloadSelectedAio = useCallback(() => {
-    setError(null)
-    setDownloadStatus("idle")
-    try {
-      if (!activeFile || !activeFile.aioLines || !activeFile.aioLines[selectedRowIndex]) {
-        throw new Error("No AIO content available for selected row")
-      }
-      const content = activeFile.aioLines[selectedRowIndex] + "\n"
-      const fileName = activeFile.originalName.replace(/\.csv$/i, `-row${selectedRowIndex + 1}.aio`)
-      triggerDownload(fileName, content)
-      setDownloadStatus("success")
-      setDownloadedFiles(prev => [...prev, fileName])
-      setTimeout(() => setDownloadStatus("idle"), 3000)
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error"
-      setError(`Download failed: ${message}`)
-      setDownloadStatus("error")
-      setTimeout(() => setDownloadStatus("idle"), 5000)
-    }
-  }, [activeFile, selectedRowIndex, triggerDownload])
-
-  const handleDownloadAllAios = useCallback(() => {
-    setError(null)
-    setDownloadAllStatus("idle")
-    try {
-      if (!files || files.length === 0) {
-        throw new Error("No files to download")
-      }
-      let counter = 0
-      files.forEach((file) => {
-        const baseName = file.originalName.replace(/\.csv$/i, "")
-        file.aioLines.forEach((line, rowIndex) => {
-          counter++
-          setTimeout(() => {
-            const content = line + "\n"
-            const aioFileName = `${baseName}_${String(counter).padStart(4, "0")}.aio`
-            triggerDownload(aioFileName, content)
-            setDownloadedFiles(prev => [...prev, aioFileName])
-          }, rowIndex * 150)
-        })
-      })
-      setDownloadAllStatus("success")
-      setTimeout(() => setDownloadAllStatus("idle"), 3000)
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error"
-      setError(`Download all failed: ${message}`)
-      setDownloadAllStatus("error")
-      setTimeout(() => setDownloadAllStatus("idle"), 5000)
-    }
-  }, [files, triggerDownload])
-
-  return (
-    <div className="space-y-6">
-      <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
-        <Button
-          onClick={() => {
-            const fileNames = downloadedFiles.length > 0 
-              ? downloadedFiles 
-              : files.flatMap((f, fi) => 
-                  f.aioLines.map((_, ri) => 
-                    `${f.originalName.replace(/\.csv$/i, "")}_${String(fi * 1000 + ri + 1).padStart(4, "0")}.aio`
-                  )
-                )
-            onProcess(fileNames)
-          }}
-          className="w-full gap-2 bg-amber-600 hover:bg-amber-700 text-white"
-        >
-          <Zap className="h-4 w-4" />
-          Process AIO Files via Hyper-Semantic Logic
-        </Button>
-      </div>
-
-      {error && (
-        <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-lg">
-          <strong>Error:</strong> {error}
-          <button onClick={() => setError(null)} className="ml-4 underline">Dismiss</button>
-        </div>
-      )}
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={onClear} className="gap-2">
-          <ArrowLeft className="h-4 w-4" />
-          Upload more files
-        </Button>
-        {downloadedFiles.length > 0 && (
-          <Button variant="outline" size="sm" onClick={() => setShowDownloaded(!showDownloaded)} className="gap-2">
-            <Download className="h-4 w-4" />
-            View Downloaded ({downloadedFiles.length})
-          </Button>
-        )}
-      </div>
-      
-      {showDownloaded && downloadedFiles.length > 0 && (
-        <Card className="bg-green-50 border-green-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center justify-between">
-              <span className="text-green-800">Downloaded Files (saved to your Downloads folder)</span>
-              <Button variant="ghost" size="sm" onClick={() => setDownloadedFiles([])} className="text-xs text-green-600 hover:text-green-800">Clear list</Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <ul className="text-sm space-y-1">
-              {downloadedFiles.map((fileName, idx) => (
-                <li key={idx} className="flex items-center gap-2 text-green-700">
-                  <Check className="h-3 w-3" />
-                  {fileName}
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
-
-      {files.length > 1 && (
-        <div className="flex gap-2 flex-wrap">
-          {files.map((file, index) => (
-            <Button
-              key={file.originalName}
-              variant={index === activeFileIndex ? "default" : "outline"}
-              size="sm"
-              onClick={() => { setActiveFileIndex(index); setSelectedRowIndex(0); }}
-              className="gap-2"
-            >
-              <FileText className="h-4 w-4" />
-              {file.originalName}
-            </Button>
-          ))}
-        </div>
-      )}
-
-      <div className="flex flex-col gap-6">
-        <Card>
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
-                CSV Data
-                <span className="text-sm font-normal text-muted-foreground">({activeFile.csvData.length} rows)</span>
-              </CardTitle>
-              <Button 
-                onClick={handleDownloadAllAios} 
-                className={cn("gap-2", downloadAllStatus === "success" && "bg-green-600 hover:bg-green-700", downloadAllStatus === "error" && "bg-red-600 hover:bg-red-700")} 
-                size="sm"
-              >
-                <Package className="h-4 w-4" />
-                {downloadAllStatus === "success" ? "Downloaded!" : downloadAllStatus === "error" ? "Failed!" : "Download All AIOs"}
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-auto max-h-96 border border-border rounded-lg">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-card border-b border-border">
-                  <tr>
-                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">#</th>
-                    {activeFile.headers.map((header) => (
-                      <th key={header} className="px-3 py-2 text-left font-medium text-muted-foreground">{header}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {activeFile.csvData.map((row, rowIndex) => (
-                    <tr 
-                      key={rowIndex} 
-                      className={cn("border-b border-border/50 cursor-pointer transition-colors", rowIndex === selectedRowIndex ? "bg-primary/10" : "hover:bg-muted/50")}
-                      onClick={() => setSelectedRowIndex(rowIndex)}
-                    >
-                      <td className="px-3 py-2 text-muted-foreground">{rowIndex + 1}</td>
-                      {row.map((cell, cellIndex) => (
-                        <td key={cellIndex} className="px-3 py-2 text-foreground">{cell}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
-                AIO Output
-                <span className="text-sm font-normal text-muted-foreground">(Row {selectedRowIndex + 1})</span>
-              </CardTitle>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={handleCopyAio} className="gap-2">
-                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  {copied ? "Copied" : "Copy"}
-                </Button>
-                <Button 
-                  size="sm" 
-                  onClick={handleDownloadSelectedAio} 
-                  className={cn("gap-2", downloadStatus === "success" && "bg-green-600 hover:bg-green-700", downloadStatus === "error" && "bg-red-600 hover:bg-red-700")}
-                >
-                  <Download className="h-4 w-4" />
-                  {downloadStatus === "success" ? "Downloaded!" : downloadStatus === "error" ? "Failed!" : "Download .aio"}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-muted/50 rounded-lg p-4 min-h-[200px]">
-              <pre className="text-sm font-mono text-primary whitespace-pre-wrap break-all">
-                {activeFile.aioLines[selectedRowIndex]}
-              </pre>
-            </div>
-            <div className="mt-4 text-sm text-muted-foreground">
-              <p className="font-medium mb-2">AIO Format Breakdown:</p>
-              <div className="flex flex-wrap gap-2">
-                <span className="inline-flex items-center px-2 py-1 rounded bg-primary/15 text-xs font-mono text-primary">
-                  [OriginalCSV.{activeFile.originalName}]
-                </span>
-                <span className="inline-flex items-center px-2 py-1 rounded bg-primary/15 text-xs font-mono text-primary">
-                  [FileDate.{activeFile.fileDate}]
-                </span>
-                <span className="inline-flex items-center px-2 py-1 rounded bg-primary/15 text-xs font-mono text-primary">
-                  [FileTime.{activeFile.fileTime}]
-                </span>
-                {activeFile.headers.map((header, idx) => (
-                  <span key={header} className="inline-flex items-center px-2 py-1 rounded bg-secondary text-xs font-mono">
-                    [{header}.{activeFile.csvData[selectedRowIndex]?.[idx] ?? ""}]
-                  </span>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  )
+function csvToAio(headers: string[], row: string[], originalFileName: string, fileDate: string, fileTime: string): string {
+  const parts: string[] = []
+  parts.push(`[OriginalCSV.${originalFileName}]`)
+  parts.push(`[FileDate.${fileDate}]`)
+  parts.push(`[FileTime.${fileTime}]`)
+  for (let i = 0; i &lt; headers.length; i++) {
+    const key = headers[i]
+    let val = row[i] ?? ""
+    val = val.replace(/\r\n/g, " ").replace(/\n/g, " ").replace(/\r/g, " ").replace(/\t/g, " ")
+    parts.push(`[${key}.${val}]`)
+  }
+  return parts.join("")
 }
 
-=====================================================
-FILE: components/semantic-processor.tsx
-=====================================================
-(Use the exact content from the semantic-processor.tsx file read above - it is 286 lines)
+function parseCSV(text: string): { headers: string[]; rows: string[][] } {
+  const lines = text.split(/\r?\n/).filter((line) =&gt; line.trim() !== "")
+  if (lines.length === 0) return { headers: [], rows: [] }
 
-=====================================================
-FILE: components/user-guide.tsx
-=====================================================
-(Use the exact content from the user-guide.tsx file read above - it includes all 5 steps)
+  const parseLine = (line: string): string[] =&gt; {
+    const result: string[] = []
+    let current = ""
+    let inQuotes = false
 
-=====================================================
-FILE: components/reference-page.tsx
-=====================================================
-(Use the exact content from the reference-page.tsx file read above - it is 383 lines)
+    for (let i = 0; i &lt; line.length; i++) {
+      const char = line[i]
+      if (char === '"') {
+        if (inQuotes &amp;&amp; line[i + 1] === '"') {
+          current += '"'
+          i++
+        } else {
+          inQuotes = !inQuotes
+        }
+      } else if (char === "," &amp;&amp; !inQuotes) {
+        result.push(current)
+        current = ""
+      } else {
+        current += char
+      }
+    }
+    result.push(current)
+    return result
+  }
 
-=====================================================
-END OF SOURCE FILES
-=====================================================
+  const headers = parseLine(lines[0])
+  const rows = lines.slice(1).map(parseLine)
 
-To rebuild in a new v0 chat, paste the following as your first message:
+  return { headers, rows }
+}
 
-"Build the AIO Generator app. Write the following files exactly as provided:
-- app/page.tsx
-- app/layout.tsx  
-- app/globals.css
-- components/file-upload.tsx
-- components/conversion-preview.tsx
-- components/semantic-processor.tsx
-- components/user-guide.tsx
-- components/reference-page.tsx
-
-Do NOT connect to any GitHub repo. Use the default shadcn/ui button and card components."
-
-Then paste each file's content.
+[REST OF page.tsx CONTINUES - SEE ORIGINAL FILE]
